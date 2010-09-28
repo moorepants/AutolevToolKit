@@ -1,28 +1,72 @@
+[Name]
+Pendulum
+
 [States]
-# The state order and the default initial conditions
-omega = 0.0
-theta = 0.0
-# This gets mapped to an ordered dictionary of the states, description and
-# intial conditions
-# x = {}
-# x['0'] = ['omega', 0.0]
-# x['1'] = ['theta', 0.0]
+# state name = initial condition
+theta = 0.
+omega = 0.
 
 [Parameters]
-m = 1.0
+# parameter name = value
 g = 9.81
-l = 1.0
+i = 1.
+l = 1.
+m = 1.
 
 [Equations of Motion]
-z[1] = sin(theta)
-omegap = -g/l*z[1] + torque/(m*l*l)
+# include all zees or none
+z[1] = cos(theta)
+z[2] = sin(theta)
+z[3] = z[1]**2 + z[2]**2
+z[4] = l*z[3]
+z[8] = g*m
+z[9] = torque*z[3] - 0.5*z[8]*z[2]*z[4]
+z[10] = i*z[3]
+z[11] = z[3]*z[10] + 0.25*m*z[4]**2
+z[12] = z[9]/z[11]
+z[13] = z[8]*z[1]*z[4]/z[11]
+z[14] = (m*z[4]**2+4*i*z[3]**2)*omega
+z[15] = g*l*m
+z[16] = z[15]*z[2]
 thetap = omega
-# this gets mapped to the following in the integration function
-# f[0] = -g/l*sin(theta)
-# f[1] = omega
+omegap = z[12]
 
-[Model Inputs]
+[Inputs]
+# one line for each input name
+torque
+
+[Input Equations]
 torque = 10*sin(2*pi*t + pi/6)
 
-[Model Outputs]
-ke = 1/2*m*(l*thetap)**2
+[Outputs]
+k
+p
+th2
+
+[Outputs Equations]
+k = 0.125*(m*z[4]**2+4*i*z[3]**2)*omega**2
+p = -0.5*g*l*m*z[1]
+th2 = 2*theta
+
+[Linear Model]
+A[0,0] = 0
+A[0,1] = 1
+A[1,0] = -0.5*z[13]
+A[1,1] = 0
+B[0] = 0
+B[1] = z[3]/z[11]
+C[0,0] = 1
+C[0,1] = 0
+C[1,0] = 0
+C[1,1] = 1
+C[2,0] = 0
+C[2,1] = 0.25*z[14]
+C[3,0] = 0.5*z[16]
+C[3,1] = 0
+C[4,0] = 2
+C[4,1] = 0
+D[0] = 0
+D[1] = 0
+D[2] = 0
+D[3] = 0
+D[4] = 0
