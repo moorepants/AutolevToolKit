@@ -149,6 +149,18 @@ t4    =  t_phi
 t6    =  t_thetar
 t7    =  t_delta
 
+% add stuff for the lateral roll disturbance force
+% pf: point at which the lateral force is applied
+points pf
+% location of the point
+% xpf: the distance from the rear wheel contact point to the pull force point
+% zpf: the distance from the rear wheel contact point to the pull force point
+constants xpf, zpf
+l5    =  xpf*cos(lambda)-zpf*sin(lambda)-rr*sin(lambda)
+l6    =  xpf*sin(lambda)+zpf*cos(lambda)+rr*cos(lambda)
+% f_phi:    lateral roll disturbance force     [n*m]
+specified f_phi
+
 % declare the generalized coordinates
 % q1:  perpendicular distance from the n2> axis to the rear contact
 %      point in the ground plane
@@ -184,27 +196,21 @@ inertia f,if11,if22,if33
 %---------------------------------------------------------------------%
 
 % frame yaw
-
 simprot(n,a,3,q3)
 
 % frame roll
-
 simprot(a,b,1,q4)
 
 % frame pitch
-
 simprot(b,c,2,q5+lambda)
 
 % rear wheel rotation
-
 simprot(c,d,2,q6)
 
 % steering angle
-
 simprot(c,e,3,q7)
 
 % front wheel rotation
-
 simprot(e,f,2,q8)
 
 %---------------------------------------------------------------------%
@@ -212,26 +218,21 @@ simprot(e,f,2,q8)
 %---------------------------------------------------------------------%
 
 % locate the center of mass for each body
-
 p_no_do>=q1*n1>+q2*n2>-rr*b3> % newtonian origin to rear wheel center
-
 p_do_co>=l1*c1>+l2*c3> % rear wheel center to bicycle frame center
-
 p_do_eo>=d1*c1>+l3*e1>+l4*e3> % rear wheel center to fork/handlebar center
 
 % rear wheel center to the front wheel center
-
 p_do_fo>=d1*c1>+d2*e3>+d3*e1>
 
 % locate the ground contact points
-
 p_do_dn>=rr*b3>
-
 p_dn_nd>=0>
-
 p_fo_fn>=rf*unitvec(n3>-dot(e2>,n3>)*e2>)
-
 p_fn_nf>=0>
+
+% locate the pull force point
+p_do_pf>=l5*c1>+l6*c3> % rear wheel center to pull force point
 
 %---------------------------------------------------------------------%
 %         define the generalized speeds
@@ -269,6 +270,8 @@ v_fo_n>=dt(p_no_fo>,n)
 v2pts(n,d,do,dn)
 v2pts(n,f,fo,fn)
 
+v_pf_n>=dt(p_no_pf>,n)
+
 %---------------------------------------------------------------------%
 %         define the pitch configuration constraint
 %---------------------------------------------------------------------%
@@ -301,11 +304,8 @@ constrain(dependent[u1,u2,u3,u5,u8])
 %---------------------------------------------------------------------%
 
 alf_c_n>=dt(w_c_n>,n)
-
 alf_d_n>=dt(w_d_n>,n)
-
 alf_e_n>=dt(w_e_n>,n)
-
 alf_f_n>=dt(w_f_n>,n)
 
 %---------------------------------------------------------------------%
@@ -321,10 +321,11 @@ a_fo_n>=dt(v_fo_n>,n)
 %         forces and torques
 %---------------------------------------------------------------------%
 
-gravity(g*n3>,c,d,e,f,g)
+gravity(g*n3>,c,d,e,f)
 torque(a/b,t4*a1>) % roll torque
 torque(c/d,t6*c2>) % rear wheel torque
 torque(c/e,t7*c3>) % steer torque
+force_pf>+=f_phi*(0*n1>+1*n2>)
 
 %---------------------------------------------------------------------%
 %         equations of motion
@@ -361,57 +362,28 @@ a[4,4]=d(u7',u7)
 
 b[1,1]=d(q4',t4)
 b[1,2]=d(q4',t7)
+b[1,3]=d(q4',f_phi)
 
 b[2,1]=d(q7',t4)
 b[2,2]=d(q7',t7)
+b[2,3]=d(q7',f_phi)
 
 b[3,1]=d(u4',t4)
 b[3,2]=d(u4',t7)
+b[3,3]=d(u4',f_phi)
 
 b[4,1]=d(u7',t4)
 b[4,2]=d(u7',t7)
+b[4,3]=d(u7',f_phi)
 
-% put the system in canonical form: m*q''+v*c1*q'+(g*k0+v^2*k2)*q=t
+encode a,b
 
-m=inv(rows(b,4:6))
-cmat=-m*cols(rows(a,4:6),4:6)
-k=-m*cols(rows(a,4:6),1:3)
-
-%c1=cmat/v
-%
-%vsq=v^2
-%
-%k0[1,1]=coef(k[1,1],g)
-%k0[1,2]=coef(k[1,2],g)
-%k0[1,3]=coef(k[1,3],g)
-%k0[2,1]=coef(k[2,1],g)
-%k0[2,2]=coef(k[2,2],g)
-%k0[2,3]=coef(k[2,3],g)
-%k0[3,1]=coef(k[3,1],g)
-%k0[3,2]=coef(k[3,2],g)
-%k0[3,3]=coef(k[3,3],g)
-%
-%k2[1,1]=coef(replace(explicit(k[1,1]),v^2=vsq),vsq)
-%k2[1,2]=coef(replace(explicit(k[1,2]),v^2=vsq),vsq)
-%k2[1,3]=coef(replace(explicit(k[1,3]),v^2=vsq),vsq)
-%k2[2,1]=coef(replace(explicit(k[2,1]),v^2=vsq),vsq)
-%k2[2,2]=coef(replace(explicit(k[2,2]),v^2=vsq),vsq)
-%k2[2,3]=coef(replace(explicit(k[2,3]),v^2=vsq),vsq)
-%k2[3,1]=coef(replace(explicit(k[3,1]),v^2=vsq),vsq)
-%k2[3,2]=coef(replace(explicit(k[3,2]),v^2=vsq),vsq)
-%k2[3,3]=coef(replace(explicit(k[3,3]),v^2=vsq),vsq)
-%
-%zee(k0)
-%zee(k2)
-
-encode a,b,m,cmat,k
-
-code algebraic() lEANtORQUE.M
+code dynamics() WhipplePullForce.c
 
 %---------------------------------------------------------------------%
 %         save output
 %---------------------------------------------------------------------%
 
-save lEANtORQUE.all
+save WhipplePullForce.all
 
 %---------------------------------------------------------------------%
