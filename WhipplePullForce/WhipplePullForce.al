@@ -379,6 +379,7 @@ b[4,3]=d(u7',f_phi)
 encode a,b
 
 code dynamics() WhipplePullForce.c
+code algebraic() WhipplePullForce.m
 
 %---------------------------------------------------------------------%
 %         save output
