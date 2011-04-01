@@ -1,6 +1,6 @@
 function [aMat, bMat, cMat, dMat] = WhipplePullForceABCD(par, varargin)
-% Returns the A, B, C, and D matrices for the Whipple Pull Force model given a
-% set of parameters and a speed.
+% Returns the A, B, C, and D matrices for the linear Whipple Pull Force model
+% given a set of parameters and a speed.
 %
 % Parameters
 % ----------
@@ -11,6 +11,7 @@ function [aMat, bMat, cMat, dMat] = WhipplePullForceABCD(par, varargin)
 % speed : float, optional
 %   The speed at which to linearize about. This overrides any speed parameter
 %   contained in the par structure.
+%
 % Returns
 % -------
 % aMat, bMat, cMat, dMat : matrices
@@ -39,8 +40,8 @@ for i = 1:length(parFields)
 end
 
 % add two parameters for the location of the pull force
-xpf = 0.5;
-zpf = -0.5;
+xpf = 0.23;
+zpf = -0.91;
 
 % states at which to linearize about
 q3 = 0.0;
