@@ -335,10 +335,30 @@ zero=fr()+frstar()
 solve(zero,u4',u6',u7')
 
 %---------------------------------------------------------------------%
+%       some extra outputs
+%---------------------------------------------------------------------%
+
+% front wheel contact location
+q9 = dot(p_no_nf>, n1>)
+q10 = dot(p_no_nf>, n2>)
+
+%---------------------------------------------------------------------%
 %         linearization
 %---------------------------------------------------------------------%
 % linearizes the equations of motion about the upright configuration
 % and constant forward speed
+
+a[1,1]=d(q1',q1)
+a[1,2]=d(q1',q2)
+a[1,3]=d(q1',q3)
+a[1,4]=d(q1',q4)
+a[1,5]=d(q1',q5)
+a[1,6]=d(q1',q6)
+a[1,7]=d(q1',q7)
+a[1,8]=d(q1',q8)
+a[1,9]=d(q1',u4)
+a[1,10]=d(q1',u6)
+a[1,11]=d(q1',u7)
 
 a[1,1]=d(q4',q4)
 a[1,2]=d(q4',q7)
@@ -376,7 +396,51 @@ b[4,1]=d(u7',t4)
 b[4,2]=d(u7',t7)
 b[4,3]=d(u7',f_phi)
 
-encode a,b
+cmat[1,1]=d(q4',q1)
+cmat[1,2]=d(q4',q2)
+cmat[1,3]=d(q4',q3)
+cmat[1,4]=d(q4',q4)
+cmat[1,5]=d(q4',q5)
+cmat[1,6]=d(q4',q6)
+cmat[1,7]=d(q4',q7)
+cmat[1,8]=d(q4',q8)
+cmat[1,9]=d(q4',q9)
+cmat[1,10]=d(q4',q10)
+
+cmat[2,1]=d(q7',q1)
+cmat[2,2]=d(q7',q2)
+cmat[2,3]=d(q7',q3)
+cmat[2,4]=d(q7',q4)
+cmat[2,5]=d(q7',q5)
+cmat[2,6]=d(q7',q6)
+cmat[2,7]=d(q7',q7)
+cmat[2,8]=d(q7',q8)
+cmat[2,9]=d(q7',q9)
+cmat[2,10]=d(q7',q10)
+
+cmat[3,1]=d(u4',q1)
+cmat[3,2]=d(u4',q2)
+cmat[3,3]=d(u4',q3)
+cmat[3,4]=d(u4',q4)
+cmat[3,5]=d(u4',q5)
+cmat[3,6]=d(u4',q6)
+cmat[3,7]=d(u4',q7)
+cmat[3,8]=d(u4',q8)
+cmat[3,9]=d(u4',q9)
+cmat[3,10]=d(u4',q10)
+
+cmat[4,1]=d(u7',q1)
+cmat[4,2]=d(u7',q2)
+cmat[4,3]=d(u7',q3)
+cmat[4,4]=d(u7',q4)
+cmat[4,5]=d(u7',q5)
+cmat[4,6]=d(u7',q6)
+cmat[4,7]=d(u7',q7)
+cmat[4,8]=d(u7',q8)
+cmat[4,9]=d(u7',q9)
+cmat[4,10]=d(u7',q10)
+
+encode a,b,cmat
 
 code dynamics() WhipplePullForce.c
 code algebraic() WhipplePullForce.m
