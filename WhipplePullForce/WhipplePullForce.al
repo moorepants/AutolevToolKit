@@ -82,7 +82,7 @@ points nd,dn,nf,fn
 constants w,c,lambda,g,v
 constants rR,mR,IRxx,IRyy
 constants xB,zB,mB,IBxx,IByy,IBzz,IBxz
-constants xh,zh,mH,IHxx,IHyy,IHzz,IHxz
+constants xH,zH,mH,IHxx,IHyy,IHzz,IHxz
 constants rF,mF,IFxx,IFyy
 specified Tphi,Tdelta,TthetaR
 
@@ -137,8 +137,8 @@ if33  =  IFxx
 % mass center locations
 l1    =  xB*cos(lambda)-zB*sin(lambda)-rR*sin(lambda)
 l2    =  xB*sin(lambda)+zB*cos(lambda)+rR*cos(lambda)
-l3    =  cos(lambda)*xh-sin(lambda)*zh-c*cos(lambda)-w*cos(lambda)
-l4    =  rR*cos(lambda)+xh*sin(lambda)+zh*cos(lambda)
+l3    =  cos(lambda)*xH-sin(lambda)*zH-c*cos(lambda)-w*cos(lambda)
+l4    =  rR*cos(lambda)+xH*sin(lambda)+zH*cos(lambda)
 % masses
 massc    =  mB
 massd    =  mR

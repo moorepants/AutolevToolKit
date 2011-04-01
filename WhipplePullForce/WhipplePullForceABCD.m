@@ -33,14 +33,14 @@ function [aMat, bMat, cMat, dMat] = WhipplePullForceABCD(par, varargin)
 %         y = [front wheel contact x
 %              front wheel contact y]
 
-parFields = fields(par)
+parFields = fields(par);
 for i = 1:length(parFields)
-    eval([parFields(i) ' = ' num2str(par.(parFields(i)))])
+    eval([parFields{i} ' = ' num2str(par.(parFields{i})) ';']);
 end
 
 % add two parameters for the location of the pull force
-xpf = 0.5
-zpf = -0.5
+xpf = 0.5;
+zpf = -0.5;
 
 % states at which to linearize about
 q3 = 0.0;
@@ -85,8 +85,8 @@ if22 = IFyy;
 if33 = IFxx;
 l1 = xB*cos(lambda) - rR*sin(lambda) - zB*sin(lambda);
 l2 = rR*cos(lambda) + xB*sin(lambda) + zB*cos(lambda);
-l3 = xh*cos(lambda) - c*cos(lambda) - w*cos(lambda) - zh*sin(lambda);
-l4 = rR*cos(lambda) + xh*sin(lambda) + zh*cos(lambda);
+l3 = xH*cos(lambda) - c*cos(lambda) - w*cos(lambda) - zH*sin(lambda);
+l4 = rR*cos(lambda) + xH*sin(lambda) + zH*cos(lambda);
 massc = mB;
 massd = mR;
 masse = mH;
@@ -4259,16 +4259,6 @@ z(4229) = d3*z(866) + z(34)*z(863) + rR*z(1)*z(3) + d1*z(1)*z(3)*z(6) - rF*z(25)
 z(4230) = d1*z(73) + d2*z(74) - d3*z(1048) - z(34)*z(1050) - rF*z(25)*z(1044);
 z(4231) = d3*z(1160) - z(34)*z(1162) - rF*z(25)*z(1157);
 
-
-
-
-%===========================================================================
-function DoCalculations
-global   c g IBxx IBxz IByy IBzz IFxx IFyy IHxx IHxz IHyy IHzz IRxx IRyy lambda mB mF mH mR rF rR w xB xh xpf zB zh zpf q3 q4 q5 q6 q7 q8 u4 u6 u7;
-global   Fphi Tdelta Tphi TthetaR;
-global   u1 u2 u3 u5 u8 q3p q4p q5p q6p q7p q8p d1 d2 d3 ic11 ic12 ic22 ic23 ic31 ic33 id11 id22 id33 ie11 ie12 ie22 ie23 ie31 ie33 if11 if22 if33 l1 l2 l3 l4 l5 l6 massc massd masse massf t4 t6 t7;
-global   DEGtoRAD RADtoDEG z aMat bMat cMat dMat Encode;
-
 % Quantities to be specified
 Fphi = 0;
 Tdelta = 0;
@@ -4320,16 +4310,6 @@ z(4199) = (z(2606)*(z(815)*z(814)+z(821)*z(812)-z(824)*z(813))+z(818)*(z(4198)*z
 z(4202) = (z(2906)*(z(815)*z(814)+z(821)*z(812)-z(824)*z(813))+z(818)*(z(4201)*z(813)+z(815)*(z(2869)-z(2856))+z(821)*(z(2890)-z(2877))-z(2905)*z(814)-z(4200)*z(812)-z(824)*(z(2895)-z(2894))))/z(818)^2;
 z(4205) = (z(3242)*(z(815)*z(814)+z(821)*z(812)-z(824)*z(813))+z(818)*(z(4204)*z(813)+z(815)*(z(3195)-z(3182))+z(821)*(z(3217)-z(3204))-z(3241)*z(814)-z(4203)*z(812)-z(824)*(z(3229)-z(3221))))/z(818)^2;
 z(4208) = (z(3551)*(z(815)*z(814)+z(821)*z(812)-z(824)*z(813))+z(818)*(z(4207)*z(813)+z(815)*(z(3511)-z(3498))+z(821)*(z(3533)-z(3520))-z(3550)*z(814)-z(4206)*z(812)-z(824)*(z(3538)-z(3537))))/z(818)^2;
-
-
-
-
-%===========================================================================
-function Output = PrintUserOutput
-global   c g IBxx IBxz IByy IBzz IFxx IFyy IHxx IHxz IHyy IHzz IRxx IRyy lambda mB mF mH mR rF rR w xB xh xpf zB zh zpf q3 q4 q5 q6 q7 q8 u4 u6 u7;
-global   Fphi Tdelta Tphi TthetaR;
-global   u1 u2 u3 u5 u8 q3p q4p q5p q6p q7p q8p d1 d2 d3 ic11 ic12 ic22 ic23 ic31 ic33 id11 id22 id33 ie11 ie12 ie22 ie23 ie31 ie33 if11 if22 if33 l1 l2 l3 l4 l5 l6 massc massd masse massf t4 t6 t7;
-global   DEGtoRAD RADtoDEG z aMat bMat cMat dMat Encode;
 
 aMat(1,1) = 0;
 aMat(1,2) = 0;

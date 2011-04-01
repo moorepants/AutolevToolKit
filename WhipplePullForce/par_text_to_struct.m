@@ -12,10 +12,10 @@ function par = par_text_to_struct(pathToFile)
 %   A structure containing the bicycle parameters.
 
 fid = fopen(pathToFile)
-data = textscan(fid, '%s %f', 'delimiter', ',')
+data = textscan(fid, '%s %s', 'delimiter', ',')
 fclose(fid)
 names = data{1}
 vals = data{2}
 for i = 1:length(names)
-    par.(names{i}) = vals(i);
+    par.(names{i}) = eval(vals{i});
 end
