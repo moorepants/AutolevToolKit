@@ -53,42 +53,42 @@ points nd,dn,nf,fn
 % lambda:   steer axis tilt                    [rad]
 % g:        gravity                            [n/kg]
 % v:        forward speed                      [m/s]
-% rr:       rear wheel radius                  [m]
-% m_r:      rear wheel mass                    [kg]
-% irxx:     rear wheel mass moment of inertia  [kg*m^2]
-% iryy:     rear wheel mass moment of inertia  [kg*m^2]
-% xb:       rear body center of mass location  [m]
-% zb:       rear body center of mass location  [m]
-% m_b:      rear body mass                     [kg]
-% ibxx:     rear body mass moment of inertia   [kg*m^2]
-% ibyy:     rear body mass moment of inertia   [kg*m^2]
-% ibzz:     rear body mass moment of inertia   [kg*m^2]
-% ibxz:     rear body mass moment of inertia   [kg*m^2]
-% xh:       fork center of mass location       [m]
-% zh:       fork center of mass location       [m]
-% m_h:      fork mass                          [kg]
-% ihxx:     fork mass moment of inertia        [kg*m^2]
-% ihyy:     fork mass moment of inertia        [kg*m^2]
-% ihzz:     fork mass moment of inertia        [kg*m^2]
-% ihxz:     fork mass moment of inertia        [kg*m^2]
-% rf:       front wheel radius                 [m]
-% m_f:      front wheel mass                   [kg]
-% ifxx:     front wheel mass moment of inertia [kg*m^2]
-% ifyy:     front wheel mass moment of inertia [kg*m^2]
-% t_phi:    roll torque                        [n*m]
-% t_delta:  steer torque                       [n*m]
-% t_thetar: rear wheel torque                  [n*m]
+% rR:       rear wheel radius                  [m]
+% mR:      rear wheel mass                    [kg]
+% IRxx:     rear wheel mass moment of inertia  [kg*m^2]
+% IRyy:     rear wheel mass moment of inertia  [kg*m^2]
+% xB:       rear body center of mass location  [m]
+% zB:       rear body center of mass location  [m]
+% mB:      rear body mass                     [kg]
+% IBxx:     rear body mass moment of inertia   [kg*m^2]
+% IByy:     rear body mass moment of inertia   [kg*m^2]
+% IBzz:     rear body mass moment of inertia   [kg*m^2]
+% IBxz:     rear body mass moment of inertia   [kg*m^2]
+% xH:       fork center of mass location       [m]
+% zH:       fork center of mass location       [m]
+% mH:      fork mass                          [kg]
+% IHxx:     fork mass moment of inertia        [kg*m^2]
+% IHyy:     fork mass moment of inertia        [kg*m^2]
+% IHzz:     fork mass moment of inertia        [kg*m^2]
+% IHxz:     fork mass moment of inertia        [kg*m^2]
+% rF:       front wheel radius                 [m]
+% mF:      front wheel mass                   [kg]
+% IFxx:     front wheel mass moment of inertia [kg*m^2]
+% IFyy:     front wheel mass moment of inertia [kg*m^2]
+% Tphi:    roll torque                        [n*m]
+% Tdelta:  steer torque                       [n*m]
+% TthetaR: rear wheel torque                  [n*m]
 
 constants w,c,lambda,g,v
-constants rr,m_r,irxx,iryy
-constants xb,zb,m_b,ibxx,ibyy,ibzz,ibxz
-constants xh,zh,m_h,ihxx,ihyy,ihzz,ihxz
-constants rf,m_f,ifxx,ifyy
-specified t_phi,t_delta,t_thetar
+constants rR,mR,IRxx,IRyy
+constants xB,zB,mB,IBxx,IByy,IBzz,IBxz
+constants xh,zh,mH,IHxx,IHyy,IHzz,IHxz
+constants rF,mF,IFxx,IFyy
+specified Tphi,Tdelta,TthetaR
 
 % convert the benchmark constants to this model's constants
-% rf: radius of front wheel
-% rr: radius of rear wheel
+% rF: radius of front wheel
+% rR: radius of rear wheel
 % d1: the perpendicular distance from the head tube axis to the center
 %     of the rear wheel
 % d3: the perpendicular distance from the head tube axis to the center
@@ -102,52 +102,52 @@ specified t_phi,t_delta,t_thetar
 % l4: the distance in the f3> direction from the steer point to the
 %     center of mass of the fork
 
-d1    =  cos(lambda)*(c+w-rr*tan(lambda))
-d3    = -cos(lambda)*(c-rf*tan(lambda))
-d2    = (rr+d1*sin(lambda)-rf+d3*sin(lambda))/cos(lambda)
+d1    =  cos(lambda)*(c+w-rR*tan(lambda))
+d3    = -cos(lambda)*(c-rF*tan(lambda))
+d2    = (rR+d1*sin(lambda)-rF+d3*sin(lambda))/cos(lambda)
 % rear wheel inertia
-id11  =  irxx
-id22  =  iryy
-id33  =  irxx
+id11  =  IRxx
+id22  =  IRyy
+id33  =  IRxx
 cf    =  [cos(lambda),0,-sin(lambda);0,1,0;sin(lambda),0,cos(lambda)]
 % rotate bicycle frame inertia through lambda
-ib    =  [ibxx,0,ibxz;0,ibyy,0;ibxz,0,ibzz]
-ibrot =  cf*ib*transpose(cf)
+IB    =  [IBxx,0,IBxz;0,IByy,0;IBxz,0,IBzz]
+IBrot =  cf*IB*transpose(cf)
 % bicycle frame inertia
-ic11  =  ibrot[1,1]
-ic12  =  ibrot[1,2]
-ic22  =  ibrot[2,2]
-ic23  =  ibrot[2,3]
-ic31  =  ibrot[3,1]
-ic33  =  ibrot[3,3]
+ic11  =  IBrot[1,1]
+ic12  =  IBrot[1,2]
+ic22  =  IBrot[2,2]
+ic23  =  IBrot[2,3]
+ic31  =  IBrot[3,1]
+ic33  =  IBrot[3,3]
 % rotate fork inertia matrix through lambda
-ih    =  [ihxx,0,ihxz;0,ihyy,0;ihxz,0,ihzz]
-ihrot =  cf*ih*transpose(cf)
+IH    =  [IHxx,0,IHxz;0,IHyy,0;IHxz,0,IHzz]
+IHrot =  cf*IH*transpose(cf)
 % fork/handlebar inertia
-ie11  =  ihrot[1,1]
-ie12  =  ihrot[1,2]
-ie22  =  ihrot[2,2]
-ie23  =  ihrot[2,3]
-ie31  =  ihrot[3,1]
-ie33  =  ihrot[3,3]
+ie11  =  IHrot[1,1]
+ie12  =  IHrot[1,2]
+ie22  =  IHrot[2,2]
+ie23  =  IHrot[2,3]
+ie31  =  IHrot[3,1]
+ie33  =  IHrot[3,3]
 % front wheel inertia
-if11  =  ifxx
-if22  =  ifyy
-if33  =  ifxx
+if11  =  IFxx
+if22  =  IFyy
+if33  =  IFxx
 % mass center locations
-l1    =  xb*cos(lambda)-zb*sin(lambda)-rr*sin(lambda)
-l2    =  xb*sin(lambda)+zb*cos(lambda)+rr*cos(lambda)
+l1    =  xB*cos(lambda)-zB*sin(lambda)-rR*sin(lambda)
+l2    =  xB*sin(lambda)+zB*cos(lambda)+rR*cos(lambda)
 l3    =  cos(lambda)*xh-sin(lambda)*zh-c*cos(lambda)-w*cos(lambda)
-l4    =  rr*cos(lambda)+xh*sin(lambda)+zh*cos(lambda)
+l4    =  rR*cos(lambda)+xh*sin(lambda)+zh*cos(lambda)
 % masses
-mc    =  m_b
-md    =  m_r
-me    =  m_h
-mf    =  m_f
+massc    =  mB
+massd    =  mR
+masse    =  mH
+massf    =  mF
 % input torques
-t4    =  t_phi
-t6    =  t_thetar
-t7    =  t_delta
+t4    =  Tphi
+t6    =  TthetaR
+t7    =  Tdelta
 
 % add stuff for the lateral roll disturbance force
 % pf: point at which the lateral force is applied
@@ -156,10 +156,10 @@ points pf
 % xpf: the distance from the rear wheel contact point to the pull force point
 % zpf: the distance from the rear wheel contact point to the pull force point
 constants xpf, zpf
-l5    =  xpf*cos(lambda)-zpf*sin(lambda)-rr*sin(lambda)
-l6    =  xpf*sin(lambda)+zpf*cos(lambda)+rr*cos(lambda)
-% f_phi:    lateral roll disturbance force     [n*m]
-specified f_phi
+l5    =  xpf*cos(lambda)-zpf*sin(lambda)-rR*sin(lambda)
+l6    =  xpf*sin(lambda)+zpf*cos(lambda)+rR*cos(lambda)
+% Fphi:    lateral roll disturbance force     [n*m]
+specified Fphi
 
 % declare the generalized coordinates
 % q1:  perpendicular distance from the n2> axis to the rear contact
@@ -185,7 +185,7 @@ motionvariables' u{8}'
 %         mass and inertia properties
 %---------------------------------------------------------------------%
 
-mass c=mc,d=md,e=me,f=mf
+mass c=massc,d=massd,e=masse,f=massf
 inertia c,ic11,ic22,ic33,ic12,ic23,ic31
 inertia d,id11,id22,id33
 inertia e,ie11,ie22,ie33,ie12,ie23,ie31
@@ -218,7 +218,7 @@ simprot(e,f,2,q8)
 %---------------------------------------------------------------------%
 
 % locate the center of mass for each body
-p_no_do>=q1*n1>+q2*n2>-rr*b3> % newtonian origin to rear wheel center
+p_no_do>=q1*n1>+q2*n2>-rR*b3> % newtonian origin to rear wheel center
 p_do_co>=l1*c1>+l2*c3> % rear wheel center to bicycle frame center
 p_do_eo>=d1*c1>+l3*e1>+l4*e3> % rear wheel center to fork/handlebar center
 
@@ -228,7 +228,7 @@ p_do_fo>=d1*c1>+d2*e3>+d3*e1>
 % locate the ground contact points
 p_do_dn>=rr*b3>
 p_dn_nd>=0>
-p_fo_fn>=rf*unitvec(n3>-dot(e2>,n3>)*e2>)
+p_fo_fn>=rF*unitvec(n3>-dot(e2>,n3>)*e2>)
 p_fn_nf>=0>
 
 % locate the pull force point
@@ -325,7 +325,7 @@ gravity(g*n3>,c,d,e,f)
 torque(a/b,t4*a1>) % roll torque
 torque(c/d,t6*c2>) % rear wheel torque
 torque(c/e,t7*c3>) % steer torque
-force_pf>+=f_phi*(0*n1>+1*n2>)
+force_pf>+=Fphi*(0*n1>+1*n2>)
 
 %---------------------------------------------------------------------%
 %         equations of motion
@@ -481,47 +481,47 @@ aMat[11,11]=d(u7',u7)
 
 bMat[1,1]=d(q1',t4)
 bMat[1,2]=d(q1',t7)
-bMat[1,3]=d(q1',f_phi)
+bMat[1,3]=d(q1',Fphi)
 
 bMat[2,1]=d(q2',t4)
 bMat[2,2]=d(q2',t7)
-bMat[2,3]=d(q2',f_phi)
+bMat[2,3]=d(q2',Fphi)
 
 bMat[3,1]=d(q3',t4)
 bMat[3,2]=d(q3',t7)
-bMat[3,3]=d(q3',f_phi)
+bMat[3,3]=d(q3',Fphi)
 
 bMat[4,1]=d(q4',t4)
 bMat[4,2]=d(q4',t7)
-bMat[4,3]=d(q4',f_phi)
+bMat[4,3]=d(q4',Fphi)
 
 bMat[5,1]=d(q5',t4)
 bMat[5,2]=d(q5',t7)
-bMat[5,3]=d(q5',f_phi)
+bMat[5,3]=d(q5',Fphi)
 
 bMat[6,1]=d(q6',t4)
 bMat[6,2]=d(q6',t7)
-bMat[6,3]=d(q6',f_phi)
+bMat[6,3]=d(q6',Fphi)
 
 bMat[7,1]=d(q7',t4)
 bMat[7,2]=d(q7',t7)
-bMat[7,3]=d(q7',f_phi)
+bMat[7,3]=d(q7',Fphi)
 
 bMat[8,1]=d(q8',t4)
 bMat[8,2]=d(q8',t7)
-bMat[8,3]=d(q8',f_phi)
+bMat[8,3]=d(q8',Fphi)
 
 bMat[9,1]=d(u4',t4)
 bMat[9,2]=d(u4',t7)
-bMat[9,3]=d(u4',f_phi)
+bMat[9,3]=d(u4',Fphi)
 
 bMat[10,1]=d(u6',t4)
 bMat[10,2]=d(u6',t7)
-bMat[10,3]=d(u6',f_phi)
+bMat[10,3]=d(u6',Fphi)
 
 bMat[11,1]=d(u7',t4)
 bMat[11,2]=d(u7',t7)
-bMat[11,3]=d(u7',f_phi)
+bMat[11,3]=d(u7',Fphi)
 
 cMat[1,1]=d(q9,q1)
 cMat[1,2]=d(q9,q2)
@@ -549,11 +549,11 @@ cMat[2,11]=d(q10,u7)
 
 dMat[1,1]=d(q9,t4)
 dMat[1,2]=d(q9,t7)
-dMat[1,3]=d(q9,f_phi)
+dMat[1,3]=d(q9,Fphi)
 
 dMat[2,1]=d(q10,t4)
 dMat[2,2]=d(q10,t7)
-dMat[2,3]=d(q10,f_phi)
+dMat[2,3]=d(q10,Fphi)
 
 encode aMat,bMat,cMat,dMat
 
