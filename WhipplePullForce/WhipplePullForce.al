@@ -145,9 +145,9 @@ massd    =  mR
 masse    =  mH
 massf    =  mF
 % input torques
-t4    =  Tphi
-t6    =  TthetaR
-t7    =  Tdelta
+T4    =  Tphi
+T6    =  TthetaR
+T7    =  Tdelta
 
 % add stuff for the lateral roll disturbance force
 % pf: point at which the lateral force is applied
@@ -322,9 +322,9 @@ a_fo_n>=dt(v_fo_n>,n)
 %---------------------------------------------------------------------%
 
 gravity(g*n3>,c,d,e,f)
-torque(a/b,t4*a1>) % roll torque
-torque(c/d,t6*c2>) % rear wheel torque
-torque(c/e,t7*c3>) % steer torque
+torque(a/b,T4*a1>) % roll torque
+torque(c/d,T6*c2>) % rear wheel torque
+torque(c/e,T7*c3>) % steer torque
 force_pf>+=Fphi*(0*n1>+1*n2>)
 
 %---------------------------------------------------------------------%
@@ -479,48 +479,48 @@ aMat[11,9]=d(u7',u4)
 aMat[11,10]=d(u7',u6)
 aMat[11,11]=d(u7',u7)
 
-bMat[1,1]=d(q1',t4)
-bMat[1,2]=d(q1',t7)
+bMat[1,1]=d(q1',T4)
+bMat[1,2]=d(q1',T7)
 bMat[1,3]=d(q1',Fphi)
 
-bMat[2,1]=d(q2',t4)
-bMat[2,2]=d(q2',t7)
+bMat[2,1]=d(q2',T4)
+bMat[2,2]=d(q2',T7)
 bMat[2,3]=d(q2',Fphi)
 
-bMat[3,1]=d(q3',t4)
-bMat[3,2]=d(q3',t7)
+bMat[3,1]=d(q3',T4)
+bMat[3,2]=d(q3',T7)
 bMat[3,3]=d(q3',Fphi)
 
-bMat[4,1]=d(q4',t4)
-bMat[4,2]=d(q4',t7)
+bMat[4,1]=d(q4',T4)
+bMat[4,2]=d(q4',T7)
 bMat[4,3]=d(q4',Fphi)
 
-bMat[5,1]=d(q5',t4)
-bMat[5,2]=d(q5',t7)
+bMat[5,1]=d(q5',T4)
+bMat[5,2]=d(q5',T7)
 bMat[5,3]=d(q5',Fphi)
 
-bMat[6,1]=d(q6',t4)
-bMat[6,2]=d(q6',t7)
+bMat[6,1]=d(q6',T4)
+bMat[6,2]=d(q6',T7)
 bMat[6,3]=d(q6',Fphi)
 
-bMat[7,1]=d(q7',t4)
-bMat[7,2]=d(q7',t7)
+bMat[7,1]=d(q7',T4)
+bMat[7,2]=d(q7',T7)
 bMat[7,3]=d(q7',Fphi)
 
-bMat[8,1]=d(q8',t4)
-bMat[8,2]=d(q8',t7)
+bMat[8,1]=d(q8',T4)
+bMat[8,2]=d(q8',T7)
 bMat[8,3]=d(q8',Fphi)
 
-bMat[9,1]=d(u4',t4)
-bMat[9,2]=d(u4',t7)
+bMat[9,1]=d(u4',T4)
+bMat[9,2]=d(u4',T7)
 bMat[9,3]=d(u4',Fphi)
 
-bMat[10,1]=d(u6',t4)
-bMat[10,2]=d(u6',t7)
+bMat[10,1]=d(u6',T4)
+bMat[10,2]=d(u6',T7)
 bMat[10,3]=d(u6',Fphi)
 
-bMat[11,1]=d(u7',t4)
-bMat[11,2]=d(u7',t7)
+bMat[11,1]=d(u7',T4)
+bMat[11,2]=d(u7',T7)
 bMat[11,3]=d(u7',Fphi)
 
 cMat[1,1]=d(q9,q1)
@@ -547,12 +547,12 @@ cMat[2,9]=d(q10,u4)
 cMat[2,10]=d(q10,u6)
 cMat[2,11]=d(q10,u7)
 
-dMat[1,1]=d(q9,t4)
-dMat[1,2]=d(q9,t7)
+dMat[1,1]=d(q9,T4)
+dMat[1,2]=d(q9,T7)
 dMat[1,3]=d(q9,Fphi)
 
-dMat[2,1]=d(q10,t4)
-dMat[2,2]=d(q10,t7)
+dMat[2,1]=d(q10,T4)
+dMat[2,2]=d(q10,T7)
 dMat[2,3]=d(q10,Fphi)
 
 encode aMat,bMat,cMat,dMat

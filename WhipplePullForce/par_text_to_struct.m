@@ -6,6 +6,7 @@ function par = par_text_to_struct(pathToFile)
 % pathToFile : string
 %   Path to a text file containing the benchmark parameters for a single
 %   bicycle.
+%
 % Returns
 % -------
 % par : structure
