@@ -263,7 +263,10 @@ def alparsec(filenamebase, code):
             if l == "/* Update derivative array prior to integration step */":
                 break
 
-            if l == "/* Quantities to be specified */":
+            sp1 = "/* Quantities to be specified */"
+            sp2 = "/* Quantities which were specified */"
+
+            if l == sp1 or l == sp2:
                 pass
             else:
                 # Handle multi-line statements
