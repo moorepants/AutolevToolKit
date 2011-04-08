@@ -3,6 +3,8 @@ beepsound off
 overwrite all
 autoz on
 
+unitsystem kg, meter, sec
+
 % define the frames and bodies
 newtonian n
 
@@ -29,6 +31,9 @@ inertia a,0,0,i
 
 simprot(n,a,3,theta)
 
+% the kinematic differential equation
+theta' = omega
+
 % the pendulum cg is at half the length
 p_no_ao> = l/2 * a2>
 
@@ -40,9 +45,6 @@ v_ao_n>=dt(p_no_ao>, n)
 alf_a_n>=dt(w_a_n>, n)
 
 a_ao_n>=dt(v_ao_n>, n)
-
-% the kinematic differential equation
-theta' = omega
 
 % the kinetics
 gravity(g * n2>,a)
@@ -103,10 +105,10 @@ D[5,1] = d(th2, force)
 encode A,B,C,D
 
 % give it some values for the constants
-input g=9.81, l=2, m=4, i=0.5
+input g=9.81 meter/sec^2, l=2 meter, m=4 kg, i=0.5 kg*meter^2
 
 % tell it what to output
-output t,theta,omega,k,p,th2
+output theta radian, omega radian/sec, k joules, p joules, th2 radian
 
 code dynamics() PendulumDynamics.c
 
