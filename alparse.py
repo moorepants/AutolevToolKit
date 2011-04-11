@@ -24,7 +24,7 @@ def writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
     else:
         classFile = classname
     intopts, parameters, states = infilestrings
-    variables, constants, odefunc, outputs = cfilestrings
+    variables, constants, odefunc, outputs, inputs, linear = cfilestrings
     fp = open(classFile + ".txt", "w")
     fp.write("[Name]\n" + classname + "\n\n")
 
@@ -40,11 +40,17 @@ def writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
     fp.write("[Constants]\n")
     fp.write(constants + "\n")
 
+    fp.write("[Inputs]\n")
+    fp.write(inputs + "\n")
+
     fp.write("[Equations of Motion]\n")
     fp.write(odefunc + "\n")
 
     fp.write("[Outputs]\n")
     fp.write(outputs + "\n")
+
+    fp.write("[Linear]\n")
+    fp.write(linear)
 
     print(filenamebase + ".in and " + filenamebase + ".c sucessfully" +
             " parsed.  Output code is in:\n" + fp.name)
@@ -182,6 +188,8 @@ def alparsec(filenamebase, code):
         2) Evaluate constants section
         3) ode function
         4) output function
+        5) specified inputs
+        6) linear model ('A', 'B', 'C' and 'D' are reserver variable names)
 
         These 4 things are arranged in different ways, depending on the value
         of code and whether or not a class is to be automatically generated for
@@ -257,30 +265,46 @@ def alparsec(filenamebase, code):
 
     # Get the equations in the right hand side of the odes
     odefunc = ""
+    inputs = ""
+    foundSpecified = False
     for l in fp:
         l = l.strip()
-        if l:
-            if l == "/* Update derivative array prior to integration step */":
-                break
+        print l
+        #if l: # if not an empty line
+        if l == "/* Update derivative array prior to integration step */":
+            break
 
-            sp1 = "/* Quantities to be specified */"
-            sp2 = "/* Quantities which were specified */"
+        # Set to false when the next empty line is found after the specified
+        # comment
+        if foundSpecified and l == '':
+            foundSpecified = False
 
-            if l == sp1 or l == sp2:
-                pass
+        # The specified inputs are somewhere in the equations of motion
+        sp1 = "/* Quantities to be specified */"
+        sp2 = "/* Quantities which were specified */"
+
+        if l == sp1 or l == sp2:
+            foundSpecified = True
+            pass # skip the line
+        elif l == '':
+            pass
+        else:
+            # Handle multi-line statements
+            while l[-1] != ';':
+                l += fp.next().strip()
+            if code == "DynSysIn" or code == "Python":
+                l = l[:-1]
+            l += "\n"
+            if foundSpecified:
+                inputs += l
             else:
-                # Handle multi-line statements
-                while l[-1] != ';':
-                    l += fp.next().strip()
-                if code == "DynSysIn" or code == "Python":
-                    l = l[:-1]
-                l += "\n"
                 odefunc += l
 
     # Seek to the first line of the output equations
     seekto(fp, "/* Evaluate output quantities */")
 
     outputs = ""
+    linear = ""
     for l in fp:
         l = l.strip()
         if l:
@@ -306,11 +330,15 @@ def alparsec(filenamebase, code):
             if code == "DynSysIn" or code == "Python":
                 l = l[:-1]
             l += "\n"
-            outputs += l
+            print l[0]
+            if l[0] == 'A' or l[0] == 'B' or l[0] == 'C' or l[0] == 'D':
+                linear += l
+            else:
+                outputs += l
             continue
         break
 
-    return variables, constants, odefunc, outputs
+    return variables, constants, odefunc, outputs, inputs, linear
 
 def alparse(filenamebase, classname, code="DynSysIn", directory=None):
     """
