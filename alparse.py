@@ -11,24 +11,25 @@
 
 """
 import os
+import re
 
 def seekto(fp, string):
     for l in fp:
         if l.strip() == string:
             break
 
-def writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
+def writeDynSysIn(fileNameBase, className, inFileStrings, cFileStrings,
         directory=None):
     if not directory == None:
-        classFile = os.path.join(directory, classname)
+        classFile = os.path.join(directory, className)
     else:
-        classFile = classname
-    intopts, parameters, states = infilestrings
-    variables, constants, odefunc, outputs, inputs, linear = cfilestrings
+        classFile = className
+    intopts, parameters, states = inFileStrings
+    variables, constants, odefunc, outputs, inputs, linear = cFileStrings
 
     fp = open(classFile + ".txt", "w")
 
-    fp.write("[Name]\n" + classname + "\n\n")
+    fp.write("[Name]\n" + className + "\n\n")
 
     fp.write("[Integration Options]\n")
     fp.write(intopts + "\n")
@@ -54,19 +55,19 @@ def writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
     fp.write("[Linear]\n")
     fp.write(linear)
 
-    print(filenamebase + ".in and " + filenamebase + ".c sucessfully" +
+    print(fileNameBase + ".in and " + fileNameBase + ".c sucessfully" +
             " parsed.  Output code is in:\n" + fp.name)
     fp.close()
 
-def writeC(infilestrings, cfilestrings, classname):
+def writeC(inFileStrings, cFileStrings, className):
     raise Exception
-    intopts, parameters, states = infilestrings
-    variables, constants, odefunc, outputs = cfilestrings
+    intopts, parameters, states = inFileStrings
+    variables, constants, odefunc, outputs = cFileStrings
 
-    filenamebase += "_al"
-    fp_header = open(filenamebase + ".h", "w")
-    fp_implementation = open(filenamebase + ".c", "w")
-    fp_driver = open(filenamebase + "_main.c", "w")
+    fileNameBase += "_al"
+    fp_header = open(fileNameBase + ".h", "w")
+    fp_implementation = open(fileNameBase + ".c", "w")
+    fp_driver = open(fileNameBase + "_main.c", "w")
 
     # Write the variables on one long line
     varstring = ""
@@ -76,8 +77,8 @@ def writeC(infilestrings, cfilestrings, classname):
 
     # Write the header file
     fp_header.write(
-        "#ifndef " + filenamebase.upper() + "_H\n" +
-        "#define " + filenamebase.upper() + "_H\n\n" +
+        "#ifndef " + fileNameBase.upper() + "_H\n" +
+        "#define " + fileNameBase.upper() + "_H\n\n" +
         "// All variables defined as globals with file scope\n" +
         "double " + varstring + "\n" +
         "// Function prototypes\n" +
@@ -111,19 +112,108 @@ def writeC(infilestrings, cfilestrings, classname):
         #        "#endif")
     fp_implementation.close()
 
-def writePython(infilestrings, cfilestrings, classname):
+def writePython(inFileStrings, cFileStrings, className, directory=None):
+    '''
+    Writes a basic Python class definition.
+
+    '''
+    template = open('DynamicSystemTemplate.py', 'r')
+
+    if not directory == None:
+        classFile = os.path.join(directory, className)
+    else:
+        classFile = className
+
+    outputfile = open(classFile + '.py', 'w')
+
+    intopts, parameters, states = inFileStrings
+    variables, constants, odefunc, outputs, inputs, linear = cFileStrings
+
+    state_lines(states)
+
+    for line in template:
+        line = re.sub('<name>', className, line)
+        line = re.sub('<parameters>', parameter_lines(parameters), line)
+        line = re.sub('<stateNames>', state_lines(states)[0], line)
+        line = re.sub('<initialConditions>', state_lines(states)[1], line)
+        line = re.sub('<inputNames>', input_lines(inputs)[0], line)
+        line = re.sub('<inputs>', input_lines(inputs)[1], line)
+        outputfile.write(line)
+
+    template.close()
+    outputfile.close()
+
+def first_line(string, numIndents):
+    firstLine = ' '*4*numIndents + string
+    indent = len(firstLine)
+    return firstLine, indent
+
+def input_lines(inputs):
+    inputs = inputs.splitlines()
+    inputNameLines, inputNameIndent = first_line('inputNames = [', 1)
+    for i, inpt in enumerate(inputs):
+        var, expr = inpt.split(' = ')
+        if inpt == inputs[0]:
+            inputNameLines += "'" + var + "',\n"
+            inputLines = ' '*8 + 'u[' + str(i) + '] = ' + expr + '\n'
+        elif inpt == inputs[-1]:
+            inputNameLines += inputNameIndent*' ' + "'" + var + "']"
+            inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr
+        else:
+            inputNameLines += inputNameIndent*' ' + "'" + var + "'\n"
+            inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr + '\n'
+    return inputNameLines, inputLines
+
+
+def state_lines(states):
+    states = states.splitlines()
+    fsp = '    '
+    stateLines = fsp + 'stateNames = ['
+    stateIndent = len(stateLines)
+    initLines = fsp + 'xInit = np.array(['
+    initIndent = len(initLines)
+    for state in states:
+        var, val = state.split(' = ')
+        if state == states[0]:
+            stateLines +=  "'" + var + "',\n" 
+            initLines += val + ',\n'
+        elif state == states[-1]:
+            stateLines +=  ' '*stateIndent + "'" + var + "']" 
+            initLines += ' '*initIndent + val + '])'
+        else:
+            stateLines +=  ' '*stateIndent + "'" + var + "',\n" 
+            initLines += ' '*initIndent + val + ',\n'
+    return stateLines, initLines
+
+def parameter_lines(parameters):
+    '''
+    Write the parameters as a dictionary definiton for a Python file.
+
+    '''
+    pars = parameters.splitlines()
+    fsp = '    '
+    parLines = fsp + 'parameters = {'
+    largeIndent = len(parLines)
+    for par in pars:
+        var, val = par.split(' = ')
+        if par == pars[0]:
+            parLines +=  "'" + var + "':" + val + ",\n" 
+        elif par == pars[-1]:
+            parLines +=  ' '*largeIndent + "'" + var + "':" + val + "}" 
+        else:
+            parLines +=  ' '*largeIndent + "'" + var + "':" + val + ",\n" 
+    return parLines
+
+def writeCxx(inFileStrings, cFileStrings, className):
     raise Exception
 
-def writeCxx(infilestrings, cfilestrings, classname):
-    raise Exception
-
-def alparsein(filenamebase, code):
+def alparsein(fileNameBase, code):
     """Parse the .in file from Autolev to grab all the lines that begin with
     the word 'Constant' or 'Initial Value'
     """
 
     print "cwd: ", os.getcwd()
-    fp = open(filenamebase + ".in", "r")
+    fp = open(fileNameBase + ".in", "r")
     for i in range(6):
         fp.next()
 
@@ -184,7 +274,7 @@ def alparsein(filenamebase, code):
     fp.close()
     return intopts, parameters, states
 
-def alparsec(filenamebase, code, linMat):
+def alparsec(fileNameBase, code, linMat):
     """Parse the .c file from Autolev to grab:
         1) list of variables that appear in all numerical calculations
         2) Evaluate constants section
@@ -198,7 +288,7 @@ def alparsec(filenamebase, code, linMat):
         C++ or Python code
     """
 
-    fp = open(filenamebase + ".c", "r")
+    fp = open(fileNameBase + ".c", "r")
 
     # For the Autolev C files I've examined, there are 20 lines of comments,
     # #include statements, and function forward declarations at the top.  The
@@ -271,8 +361,6 @@ def alparsec(filenamebase, code, linMat):
     foundSpecified = False
     for l in fp:
         l = l.strip()
-        print l
-        #if l: # if not an empty line
         if l == "/* Update derivative array prior to integration step */":
             break
 
@@ -345,40 +433,42 @@ def alparsec(filenamebase, code, linMat):
 
     return variables, constants, odefunc, outputs, inputs, linear
 
-def alparse(filenamebase, classname, code="DynSysIn", directory=None,
+def alparse(fileNameBase, className, code="DynSysIn", directory=None,
             linear=('A','B','C','D')):
     """
-        filenamebase : string of the base input filename.  alparse() expects
-        that filenamebase.c and filenamebase.in exist in the current working
-        directory.
+        fileNameBase : string of the base input filename.  alparse() expects
+        that fileNameBase.c and fileNameBase.in exist in the current working
+        directory unless a directory is specified.
 
-        classname : Name of system.  Used to name classes in
+        className : Name of system.  Used to name classes in
         Psuedo-Code/C++/Python code, used to name struct in C code.  Output
-        code is written to a file of title classname.*
+        code is written to a file of title className. It should be in camel
+        case.*
 
         code : valid choices are "DynSysIn", "Python", "C" or "C++"
 
-        directory : Optional path to the directory in which filenamebase.c and
-        filenamebase.in exist. If 'None', alparse assumes files are in current
+        directory : Optional path to the directory in which fileNameBase.c and
+        fileNameBase.in exist. If 'None', alparse assumes files are in current
         working directory.
 
         linear : These should reflect what the linear A, B, C, D matrices in
         the autolev file are named, change them if you use variables other than
         the default.
+
     """
     if not directory == None:
-        filenamebase = os.path.join(directory, filenamebase)
+        fileNameBase = os.path.join(directory, fileNameBase)
 
-    infilestrings = alparsein(filenamebase, code)
-    cfilestrings = alparsec(filenamebase, code, linear)
+    inFileStrings = alparsein(fileNameBase, code)
+    cFileStrings = alparsec(fileNameBase, code, linear)
 
     if code == "DynSysIn":
-        writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
+        writeDynSysIn(fileNameBase, className, inFileStrings, cFileStrings,
                       directory=directory)
     elif code == "C":
-        writeC(infilestrings, cfilestrings, classname)
+        writeC(inFileStrings, cFileStrings, className)
     elif code == "Python":
-        writePython(infilestrings, cfilestrings, classname)
+        writePython(inFileStrings, cFileStrings, className, directory=directory)
     elif code == "C++":
-        writeC++(infilestrings, cfilestrings, classname)
+        writeC++(inFileStrings, cFileStrings, className)
 
