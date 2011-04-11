@@ -182,7 +182,7 @@ def alparsein(filenamebase, code):
     fp.close()
     return intopts, parameters, states
 
-def alparsec(filenamebase, code):
+def alparsec(filenamebase, code, linMat):
     """Parse the .c file from Autolev to grab:
         1) list of variables that appear in all numerical calculations
         2) Evaluate constants section
@@ -330,7 +330,7 @@ def alparsec(filenamebase, code):
             if code == "DynSysIn" or code == "Python":
                 l = l[:-1]
             l += "\n"
-            if l[0] == 'A' or l[0] == 'B' or l[0] == 'C' or l[0] == 'D':
+            if l[0] in linMat:
                 linear += l
             else:
                 outputs += l
@@ -339,7 +339,8 @@ def alparsec(filenamebase, code):
 
     return variables, constants, odefunc, outputs, inputs, linear
 
-def alparse(filenamebase, classname, code="DynSysIn", directory=None):
+def alparse(filenamebase, classname, code="DynSysIn", directory=None,
+            linear=('A','B','C','D')):
     """
         filenamebase : string of the base input filename.  alparse() expects
         that filenamebase.c and filenamebase.in exist in the current working
@@ -354,16 +355,20 @@ def alparse(filenamebase, classname, code="DynSysIn", directory=None):
         directory : Optional path to the directory in which filenamebase.c and
         filenamebase.in exist. If 'None', alparse assumes files are in current
         working directory.
+
+        linear : These should reflect what the linear A, B, C, D matrices in
+        the autolev file are named, change them if you use variables other than
+        the default.
     """
     if not directory == None:
         filenamebase = os.path.join(directory, filenamebase)
 
     infilestrings = alparsein(filenamebase, code)
-    cfilestrings = alparsec(filenamebase, code)
+    cfilestrings = alparsec(filenamebase, code, linear)
 
     if code == "DynSysIn":
         writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
-                directory=directory)
+                      directory=directory)
     elif code == "C":
         writeC(infilestrings, cfilestrings, classname)
     elif code == "Python":
