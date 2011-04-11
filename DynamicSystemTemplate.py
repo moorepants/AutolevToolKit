@@ -82,6 +82,7 @@ class <name>():
 
     def inputs(self, t):
         '''Returns the input value for time t.'''
+        t = T
         u = np.zeros(len(self.inputNames))
 <inputs>
 
