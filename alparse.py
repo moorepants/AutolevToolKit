@@ -25,7 +25,7 @@ def writeText(fileNameBase, className, inFileStrings, cFileStrings,
     else:
         classFile = className
     intopts, parameters, states = inFileStrings
-    variables, constants, odefunc, outputs, inputs, linear = cFileStrings
+    variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
 
     fp = open(classFile + ".txt", "w")
 
@@ -127,7 +127,16 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     outputfile = open(classFile + '.py', 'w')
 
     intopts, parameters, states = inFileStrings
-    variables, constants, odefunc, outputs, inputs, linear = cFileStrings
+    variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
+    print "intopts:\n", intopts
+    print "parameters:\n", parameters
+    print "states:\n", states
+    print "variables:\n", variables
+    print "constants:\n", constants
+    print "odefunc:\n", odefunc
+    print "outputs:\n", outputs
+    print "inputs:\n", inputs
+    print "linear:\n", linear
 
     state_lines(states)
 
@@ -138,6 +147,12 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
         line = re.sub('<initialConditions>', state_lines(states)[1], line)
         line = re.sub('<inputNames>', input_lines(inputs)[0], line)
         line = re.sub('<inputs>', input_lines(inputs)[1], line)
+        line = re.sub('<outputNames>', output_lines(outputNames, outputs)[0], line)
+        line = re.sub('<outputs>', output_lines(outputNames, outputs)[1], line)
+        line = re.sub('<numZees>', zee_line(variables), line)
+        line = re.sub('<intOpts>', int_opt_lines(intopts), line)
+        line = re.sub('<eom>', eom_lines(odefunc), line)
+        line = re.sub('<constants>', constants_lines(constants), line)
         outputfile.write(line)
 
     template.close()
@@ -147,6 +162,62 @@ def first_line(string, numIndents):
     firstLine = ' '*4*numIndents + string
     indent = len(firstLine)
     return firstLine, indent
+
+def replace_z_with_self_dot_z(string):
+    return re.sub('(z\[\d*\])', r'self.\1', string)
+
+def constants_lines(constants):
+    constants = constants.splitlines()
+    constantsLines = ''
+    for line in constants:
+        constantsLines += ' '*8 + replace_z_with_self_dot_z(line) + '\n'
+    return constantsLines
+
+def eom_lines(odefunc):
+    eom = odefunc.splitlines()
+    eomLines = ''
+    for line in eom:
+        eomLines += ' '*8 + re.sub('(z\[\d*\])', r'self.\1', line) + '\n'
+    return eomLines
+
+def int_opt_lines(intopts):
+    '''
+    Write the integration options as a dictionary definiton for a Python file.
+
+    '''
+    intOpts = intopts.splitlines()
+    intOptLines, intOptIndent = first_line('intOpts = {', 1)
+    for opt in intOpts:
+        var, val = opt.split(' = ')
+        if opt == intOpts[0]:
+            intOptLines +=  "'" + var + "':" + val + ",\n"
+        elif opt == intOpts[-1]:
+            intOptLines +=  ' '*intOptIndent + "'" + var + "':" + val + "}"
+        else:
+            intOptLines +=  ' '*intOptIndent + "'" + var + "':" + val + ",\n"
+    return intOptLines
+
+def zee_line(variables):
+    # find the z variable declaration
+    for var in variables:
+        if var[0] == 'z':
+            numZees = re.sub('z\[(\d*)\]', r'\1', var)
+    zeeLine = ' '*4 + 'z = np.zeros(' + numZees + ')'
+    return zeeLine
+
+def output_lines(outputNames, outputs):
+    outputNameLines, outputNameIndent = first_line('outputNames = [', 1)
+    for name in outputNames:
+        if name == outputNames[0]:
+            outputNameLines += "'" + name + "',\n"
+        elif name == outputNames[-1]:
+            outputNameLines += outputNameIndent*' ' + "'" + name + "']"
+        else:
+            outputNameLines += outputNameIndent*' ' + "'" + name + "'\n"
+    outputLines = ''
+    for line in outputs.splitlines():
+        outputLines += replace_z_with_self_dot_z(' '*8 + line + '\n')
+    return outputNameLines, outputLines
 
 def input_lines(inputs):
     inputs = inputs.splitlines()
@@ -164,13 +235,12 @@ def input_lines(inputs):
             inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr + '\n'
     return inputNameLines, inputLines
 
-
 def state_lines(states):
     states = states.splitlines()
     fsp = '    '
     stateLines = fsp + 'stateNames = ['
     stateIndent = len(stateLines)
-    initLines = fsp + 'xInit = np.array(['
+    initLines = fsp + 'initialConditions = ['
     initIndent = len(initLines)
     for state in states:
         var, val = state.split(' = ')
@@ -179,7 +249,7 @@ def state_lines(states):
             initLines += val + ',\n'
         elif state == states[-1]:
             stateLines +=  ' '*stateIndent + "'" + var + "']"
-            initLines += ' '*initIndent + val + '])'
+            initLines += ' '*initIndent + val + ']'
         else:
             stateLines +=  ' '*stateIndent + "'" + var + "',\n"
             initLines += ' '*initIndent + val + ',\n'
@@ -408,10 +478,15 @@ def alparsec(fileNameBase, code, linMat):
             continue
         break
 
+    outputNames = []
     seekto(fp, "/* Write output to screen and to output file(s) */")
     for l in fp:
         l = l.strip()
         if l:
+            # grab the output names
+            ol = 'writef(Fptr['
+            if l[:len(ol)] == ol:
+                outputNames += [x.strip() for x in l.split(',')[2:-1]]
             if l[:6] == "writef":
                 continue
             # Handle multi-line statements
@@ -420,6 +495,7 @@ def alparsec(fileNameBase, code, linMat):
             if code == "Text" or code == "Python":
                 l = l[:-1]
             l += "\n"
+            # grab the matrices for the linear model
             linearLine = False
             for matrix in linMat:
                 if l[:len(matrix)] == matrix:
@@ -431,7 +507,7 @@ def alparsec(fileNameBase, code, linMat):
             continue
         break
 
-    return variables, constants, odefunc, outputs, inputs, linear
+    return variables, constants, odefunc, outputs, inputs, linear, outputNames
 
 def alparse(fileNameBase, className, code="Text", directory=None,
             linear=('A','B','C','D')):
