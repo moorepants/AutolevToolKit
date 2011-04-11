@@ -330,7 +330,6 @@ def alparsec(filenamebase, code):
             if code == "DynSysIn" or code == "Python":
                 l = l[:-1]
             l += "\n"
-            print l[0]
             if l[0] == 'A' or l[0] == 'B' or l[0] == 'C' or l[0] == 'D':
                 linear += l
             else:
