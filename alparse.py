@@ -128,15 +128,15 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
 
     intopts, parameters, states = inFileStrings
     variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
-    print "intopts:\n", intopts
-    print "parameters:\n", parameters
-    print "states:\n", states
-    print "variables:\n", variables
-    print "constants:\n", constants
-    print "odefunc:\n", odefunc
-    print "outputs:\n", outputs
-    print "inputs:\n", inputs
-    print "linear:\n", linear
+    #print "intopts:\n", intopts
+    #print "parameters:\n", parameters
+    #print "states:\n", states
+    #print "variables:\n", variables
+    #print "constants:\n", constants
+    #print "odefunc:\n", odefunc
+    #print "outputs:\n", outputs
+    #print "inputs:\n", inputs
+    #print "linear:\n", linear
 
     state_lines(states)
 
