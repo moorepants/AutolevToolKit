@@ -18,7 +18,7 @@ def seekto(fp, string):
         if l.strip() == string:
             break
 
-def writeDynSysTxt(fileNameBase, className, inFileStrings, cFileStrings,
+def writeText(fileNameBase, className, inFileStrings, cFileStrings,
         directory=None):
     if not directory == None:
         classFile = os.path.join(directory, className)
@@ -226,14 +226,14 @@ def alparsein(fileNameBase, code):
         if l:
             if l[0] == "Constant":
                 parameters += l[1] + " = " + l[4]
-                if l[2] != "UNITS" and code == "DynSysTxt":
+                if l[2] != "UNITS" and code == "Text":
                     parameters += ", " + l[2]
                 if code == "C" or code == "C++":
                     parameters += ";"
                 parameters += "\n"
             elif l[0] == "Initial" and l[1] == "Value":
                 states += l[2] + " = " + l[5]
-                if l[3] != "UNITS" and code == "DynSysTxt":
+                if l[3] != "UNITS" and code == "Text":
                     states += ", " + l[3]
                 if code == "C" or code == "C++":
                     states += ";"
@@ -242,21 +242,21 @@ def alparsein(fileNameBase, code):
                 intopts += "ti = " + l[5]
                 if code == "C" or code == "C++":
                     intopts += ";"
-                elif code == "DynSysTxt" and l[3] != "UNITS":
+                elif code == "Text" and l[3] != "UNITS":
                     intopts += ", " + l[3]
                 intopts += "\n"
             elif l[2] == 'TFINAL':
                 intopts += "tf = " + l[5]
                 if code == "C" or code == "C++":
                     intopts += ";"
-                elif code == "DynSysTxt" and l[3] != "UNITS":
+                elif code == "Text" and l[3] != "UNITS":
                     intopts += ", " + l[3]
                 intopts += "\n"
             elif l[2] == 'INTEGSTP':
                 intopts += "ts = " + l[5]
                 if code == "C" or code == "C++":
                     intopts += ";"
-                elif code == "DynSysTxt" and l[3] != "UNITS":
+                elif code == "Text" and l[3] != "UNITS":
                     intopts += ", " + l[3]
                 intopts += "\n"
             elif l[2] == 'ABSERR':
@@ -342,7 +342,7 @@ def alparsec(fileNameBase, code, linMat):
             while l[-1] != ';':
                 l += fp.next().strip()
 
-            if code == "DynSysTxt" or code == "Python":
+            if code == "Text" or code == "Python":
                 l = l[:-1]  # remove the semi-colon at end
             l += "\n"
             constants += l
@@ -382,7 +382,7 @@ def alparsec(fileNameBase, code, linMat):
             # Handle multi-line statements
             while l[-1] != ';':
                 l += fp.next().strip()
-            if code == "DynSysTxt" or code == "Python":
+            if code == "Text" or code == "Python":
                 l = l[:-1]
             l += "\n"
             if foundSpecified:
@@ -401,7 +401,7 @@ def alparsec(fileNameBase, code, linMat):
             # Handle multi-line statements
             while l[-1] != ';':
                 l += fp.next().strip()
-            if code == "DynSysTxt" or code == "Python":
+            if code == "Text" or code == "Python":
                 l = l[:-1]
             l += "\n"
             outputs += l
@@ -417,7 +417,7 @@ def alparsec(fileNameBase, code, linMat):
             # Handle multi-line statements
             while l[-1] != ';':
                 l += fp.next().strip()
-            if code == "DynSysTxt" or code == "Python":
+            if code == "Text" or code == "Python":
                 l = l[:-1]
             l += "\n"
             linearLine = False
@@ -433,7 +433,7 @@ def alparsec(fileNameBase, code, linMat):
 
     return variables, constants, odefunc, outputs, inputs, linear
 
-def alparse(fileNameBase, className, code="DynSysTxt", directory=None,
+def alparse(fileNameBase, className, code="Text", directory=None,
             linear=('A','B','C','D')):
     """
         fileNameBase : string of the base input filename.  alparse() expects
@@ -445,7 +445,7 @@ def alparse(fileNameBase, className, code="DynSysTxt", directory=None,
         code is written to a file of title className. It should be in camel
         case.*
 
-        code : valid choices are "DynSysTxt", "Python", "C" or "C++"
+        code : valid choices are "Text", "Python", "C" or "C++"
 
         directory : Optional path to the directory in which fileNameBase.c and
         fileNameBase.in exist. If 'None', alparse assumes files are in current
@@ -462,8 +462,8 @@ def alparse(fileNameBase, className, code="DynSysTxt", directory=None,
     inFileStrings = alparsein(fileNameBase, code)
     cFileStrings = alparsec(fileNameBase, code, linear)
 
-    if code == "DynSysTxt":
-        writeDynSysTxt(fileNameBase, className, inFileStrings, cFileStrings,
+    if code == "Text":
+        writeText(fileNameBase, className, inFileStrings, cFileStrings,
                       directory=directory)
     elif code == "C":
         writeC(inFileStrings, cFileStrings, className)
