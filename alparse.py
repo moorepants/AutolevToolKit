@@ -25,7 +25,9 @@ def writeDynSysIn(filenamebase, classname, infilestrings, cfilestrings,
         classFile = classname
     intopts, parameters, states = infilestrings
     variables, constants, odefunc, outputs, inputs, linear = cfilestrings
+
     fp = open(classFile + ".txt", "w")
+
     fp.write("[Name]\n" + classname + "\n\n")
 
     fp.write("[Integration Options]\n")
@@ -330,7 +332,11 @@ def alparsec(filenamebase, code, linMat):
             if code == "DynSysIn" or code == "Python":
                 l = l[:-1]
             l += "\n"
-            if l[0] in linMat:
+            linearLine = False
+            for matrix in linMat:
+                if l[:len(matrix)] == matrix:
+                    linearLine = True
+            if linearLine:
                 linear += l
             else:
                 outputs += l
