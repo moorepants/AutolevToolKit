@@ -12,16 +12,22 @@ class <name>():
 
     # numerical integration parameters
 <intOpts>
+
     # parameter names and their values
 <parameters>
+
     # state names
 <stateNames>
+
     # sets the initial conditions of the states
 <initialConditions>
+
     # input names
 <inputNames>
+
     # output names
 <outputNames>
+
     # initialize state vector
     x = np.zeros(len(stateNames))
 
@@ -33,6 +39,7 @@ class <name>():
 
     # initializes the zees
 <numZees>
+
     # intialize the time
     t = intOpts['ti']
 
@@ -47,6 +54,7 @@ class <name>():
             exec(parameter + ' = ' + str(value))
 
 <constants>
+
     def f(self, x, t):
         '''Returns the derivative of the states.'''
 
@@ -64,6 +72,7 @@ class <name>():
             exec(name + ' = ' + 'u[' + str(i) + ']'))
 
 <eom>
+
         # plug in the derivatives for returning
         f = zeros(len(stateNames))
         for i, name in enumerate(self.stateNames):
@@ -75,6 +84,7 @@ class <name>():
         '''Returns the input value for time t.'''
         u = np.zeros(len(self.inputNames))
 <inputs>
+
         return u
 
     def outputs(self, x):
@@ -92,6 +102,7 @@ class <name>():
 
         # calculate the outputs
 <outputs>
+
         # plug in the derivatives for returning
         y = zeros(len(self.outputNames))
         for i, name in enumerate(self.outputNames):
