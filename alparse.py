@@ -130,16 +130,16 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
 
     intopts, parameters, states = inFileStrings
     variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
-    print "intopts:\n", intopts
-    print "parameters:\n", parameters
-    print "states:\n", states
-    print "variables:\n", variables
-    print "constants:\n", constants
-    print "odefunc:\n", odefunc
-    print "outputs:\n", outputs
-    print "inputs:\n", inputs
-    print "linear:\n", linear
-    print "outputNames:\n", outputNames
+    #print "intopts:\n", intopts
+    #print "parameters:\n", parameters
+    #print "states:\n", states
+    #print "variables:\n", variables
+    #print "constants:\n", constants
+    #print "odefunc:\n", odefunc
+    #print "outputs:\n", outputs
+    #print "inputs:\n", inputs
+    #print "linear:\n", linear
+    #print "outputNames:\n", outputNames
 
     state_lines(states)
 
@@ -459,6 +459,7 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     odefunc = ""
     inputs = ""
     foundSpecified = False
+    nonZees = []
     for l in fp:
         l = l.strip()
         if l == "/* Update derivative array prior to integration step */":
@@ -485,10 +486,14 @@ def alparsec(fileNameBase, code, linMat, stateNames):
             if code == "Text" or code == "Python":
                 l = l[:-1]
             l += "\n"
+            if l[0] != 'z':
+                nonZees.append(l)
             if foundSpecified:
                 inputs += l
             else:
                 odefunc += l
+    for line in nonZees:
+        print line
 
     outputs = ""
     linear = ""
@@ -536,7 +541,7 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     for name in outputNames:
         if name not in stateNames:
             nonStateOutputs.append(name)
-    print nonStateOutputs
+    print "nonStateOutputs:", nonStateOutputs
     for l in fp:
         l = l.strip()
         if l:
