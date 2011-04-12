@@ -813,6 +813,24 @@ encode aMat,bMat,cMat,dMat
 
 unitsystem kg, meter, sec
 
+input w=1.02 m,c=0.08 m,lam=3.141592653589793/10 rad,g=9.81 kg
+
+input rR=0.3 m,mR=2 kg,IRxx=0.0603 kg*m^2,IRyy=0.12 kg*m^2
+
+input xB=0.3 m,zB=-0.9 m,mB=85 kg
+
+input IBxx=9.2 kg*m^2,IByy=11 kg*m^2,IBzz=2.8 kg*m^2,IBxz=2.4 kg*m^2
+
+input xH=0.9 m,zH=-0.7 m,mH=4 kg
+
+input IHxx=0.05892 kg*m^2,IHyy=0.06 kg*m^2,IHzz=0.00708 kg*m^2
+
+input IHxz=-0.00756 kg*m^2
+
+input rF=0.35 m,mF=3 kg,IFxx=0.1405 kg*m^2,IFyy=0.28 kg*m^2
+
+input xpf=0.23 m,zpf=-0.91 m
+
 output q1 m, q2 m, q3 rad, q4 rad, q5 rad, q6 rad, q7 rad, q8 rad
 output u1 m/s, u2 m/s, u3 rad/s, u4 rad/s, u5 rad/s, u6 rad/s, u7 rad/s, u8 rad/s
 output q9 m, q10 m
