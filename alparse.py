@@ -14,14 +14,17 @@ import os
 import re
 
 def seekto(fp, string):
+    '''Sets the file location to the first line matching string.'''
     # go back to the beginning of the file
     fp.seek(0)
+    # go through line by line and stop when string is found
     for l in fp:
         if l.strip() == string:
             break
 
 def writeText(fileNameBase, className, inFileStrings, cFileStrings,
         directory=None):
+    '''Writes a plain text file with the model details.'''
     if not directory == None:
         classFile = os.path.join(directory, className)
     else:
@@ -50,6 +53,15 @@ def writeText(fileNameBase, className, inFileStrings, cFileStrings,
 
     fp.write("[Equations of Motion]\n")
     fp.write(odefunc + "\n")
+
+    fp.write("[Dependent Variables]\n")
+    fp.write(dependentVarLines + "\n")
+
+    fp.write("[Output Names]\n")
+    otnm = ''
+    for name in outputNames:
+        otnm += name + '\n'
+    fp.write(otnm + "\n")
 
     fp.write("[Outputs]\n")
     fp.write(outputs + "\n")
