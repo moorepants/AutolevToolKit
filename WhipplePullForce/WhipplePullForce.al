@@ -811,6 +811,12 @@ dMat[18,3]=d(q10,Fphi)
 
 encode aMat,bMat,cMat,dMat
 
+unitsystem kg, meter, sec
+
+output q1 m, q2 m, q3 rad, q4 rad, q5 rad, q6 rad, q7 rad, q8 rad
+output u1 m/s, u2 m/s, u3 rad/s, u4 rad/s, u5 rad/s, u6 rad/s, u7 rad/s, u8 rad/s
+output q9 m, q10 m
+
 code dynamics() WhipplePullForce.c
 code algebraic() WhipplePullForce.m
 
