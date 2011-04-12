@@ -14,6 +14,8 @@ import os
 import re
 
 def seekto(fp, string):
+    # go back to the beginning of the file
+    fp.seek(0)
     for l in fp:
         if l.strip() == string:
             break
@@ -358,7 +360,14 @@ def alparsein(fileNameBase, code):
     fp.close()
     return intopts, parameters, states
 
-def alparsec(fileNameBase, code, linMat):
+def state_name_list(states):
+    stateNames = []
+    for line in states.splitlines():
+        state, val = line.split(' = ')
+        stateNames.append(state)
+    return stateNames
+
+def alparsec(fileNameBase, code, linMat, stateNames):
     """Parse the .c file from Autolev to grab:
         1) list of variables that appear in all numerical calculations
         2) Evaluate constants section
@@ -433,7 +442,6 @@ def alparsec(fileNameBase, code, linMat):
         else:
             break
 
-
     # Seek to the line in the ode func that has the comment above the equations
     seekto(fp, "/* Update variables after integration step */" )
     while fp.next().strip() != '':
@@ -474,42 +482,31 @@ def alparsec(fileNameBase, code, linMat):
             else:
                 odefunc += l
 
-    # Seek to the first line of the output equations
-    seekto(fp, "/* Evaluate output quantities */")
-
     outputs = ""
     linear = ""
-    for l in fp:
-        l = l.strip()
-        if l:
-            # Handle multi-line statements
-            while l[-1] != ';':
-                l += fp.next().strip()
-            if code == "Text" or code == "Python":
-                l = l[:-1]
-            l += "\n"
-            outputs += l
-            continue
-        break
-
     outputNames = []
+    ol = 'writef(Fptr['
     seekto(fp, "/* Write output to screen and to output file(s) */")
     for l in fp:
         l = l.strip()
         if l:
             # grab the output names
-            ol = 'writef(Fptr['
             if l[:len(ol)] == ol:
                 outputNames += [x.strip() for x in l.split(',')[2:-1]]
+            # skip the lines with writef
             if l[:6] == "writef":
                 continue
             # Handle multi-line statements
             while l[-1] != ';':
                 l += fp.next().strip()
+            # removes the ';' at the end
             if code == "Text" or code == "Python":
                 l = l[:-1]
             l += "\n"
-            # grab the matrices for the linear model
+            # if it is a matrix entry for the A, B, C, D matrices then put it
+            # in the linear listing, else put it in the outputs section. This
+            # section seems to typically only have the encoded matrices
+            # anyways.
             linearLine = False
             for matrix in linMat:
                 if l[:len(matrix)] == matrix:
@@ -520,6 +517,38 @@ def alparsec(fileNameBase, code, linMat):
                 outputs += l
             continue
         break
+
+    # Seek to the first line of the output equations
+    # The outputs seem to come before the zees associated with the encoded A,
+    # B, C, D matrices
+    seekto(fp, "/* Evaluate output quantities */")
+    linearBeg = ''
+    numOutputsFound = 0
+    nonStateOutputs = []
+    for name in outputNames:
+        if name not in stateNames:
+            nonStateOutputs.append(name)
+    print nonStateOutputs
+    for l in fp:
+        l = l.strip()
+        if l:
+            # Handle multi-line statements
+            while l[-1] != ';':
+                l += fp.next().strip()
+            if code == "Text" or code == "Python":
+                l = l[:-1]
+            l += "\n"
+            leftSide, rightSide = l.split(' = ')
+            if numOutputsFound < len(nonStateOutputs):
+                outputs += l
+            else:
+                linearBeg += l
+            if leftSide in nonStateOutputs:
+                numOutputsFound += 1
+            continue
+        break
+
+    linear = linearBeg + linear
 
     return variables, constants, odefunc, outputs, inputs, linear, outputNames
 
@@ -553,7 +582,8 @@ def alparse(fileNameBase, className, code="Text", directory=None,
     os.system('rm ' + os.path.join(directory, 'alTmp.*'))
 
     inFileStrings = alparsein(fileNameBase, code)
-    cFileStrings = alparsec(fileNameBase, code, linear)
+    cFileStrings = alparsec(fileNameBase, code, linear,
+                            state_name_list(inFileStrings[2]))
 
     if code == "Text":
         writeText(fileNameBase, className, inFileStrings, cFileStrings,
