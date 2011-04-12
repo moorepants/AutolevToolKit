@@ -1,4 +1,5 @@
 from numpy import zeros
+from numpy import sin, cos, tan
 from DynamicSystem import DynamicSystem
 
 class <name>(DynamicSystem):
@@ -98,7 +99,7 @@ class <name>(DynamicSystem):
 
 <eom>
         # plug in the derivatives for returning
-        f = zeros(len(stateNames))
+        f = zeros(len(self.stateNames))
         for i, name in enumerate(self.stateNames):
             exec('f[' + str(i) + '] = ' + name + 'p')
 
@@ -127,7 +128,7 @@ class <name>(DynamicSystem):
         ---------
 
         '''
-        t = T
+        T = t
         u = zeros(len(self.inputNames))
 <inputs>
         return u
@@ -162,6 +163,11 @@ class <name>(DynamicSystem):
         # sets the current state
         for i, name in enumerate(self.stateNames):
             exec(name + ' = ' + 'x[' + str(i) + ']')
+
+        # calculates inputs
+        u = self.inputs(t)
+        for i, name in enumerate(self.inputNames):
+            exec(name + ' = ' + 'self.u[' + str(i) + ']')
 
         # calculate the outputs
 <outputs>

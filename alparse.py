@@ -128,15 +128,16 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
 
     intopts, parameters, states = inFileStrings
     variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
-    #print "intopts:\n", intopts
-    #print "parameters:\n", parameters
-    #print "states:\n", states
-    #print "variables:\n", variables
-    #print "constants:\n", constants
-    #print "odefunc:\n", odefunc
-    #print "outputs:\n", outputs
-    #print "inputs:\n", inputs
-    #print "linear:\n", linear
+    print "intopts:\n", intopts
+    print "parameters:\n", parameters
+    print "states:\n", states
+    print "variables:\n", variables
+    print "constants:\n", constants
+    print "odefunc:\n", odefunc
+    print "outputs:\n", outputs
+    print "inputs:\n", inputs
+    print "linear:\n", linear
+    print "outputNames:\n", outputNames
 
     state_lines(states)
 
@@ -169,8 +170,16 @@ def replace_z_with_self_dot_z(string):
 def constants_lines(constants):
     constants = constants.splitlines()
     constantsLines = ''
+    constantList = []
     for line in constants:
         constantsLines += ' '*8 + replace_z_with_self_dot_z(line) + '\n'
+        if line[0] != 'z':
+            var, trash = line.split(' = ')
+            constantList.append(var)
+    for cst in constantList:
+        constantsLines = re.sub('(' + cst + ')',
+                                r"self.parameters['\1']",
+                                constantsLines)
     return constantsLines
 
 def eom_lines(odefunc):
@@ -202,7 +211,12 @@ def zee_line(variables):
     for var in variables:
         if var[0] == 'z':
             numZees = re.sub('z\[(\d*)\]', r'\1', var)
-    zeeLine = ' '*4 + 'z = zeros(' + numZees + ')'
+        else:
+            zees = False
+    if zees:
+        return ' '*4 + 'z = zeros(' + numZees + ')'
+    else:
+        return '    # no zees here'
     return zeeLine
 
 def output_lines(outputNames, outputs):
@@ -213,7 +227,7 @@ def output_lines(outputNames, outputs):
         elif name == outputNames[-1]:
             outputNameLines += outputNameIndent*' ' + "'" + name + "']"
         else:
-            outputNameLines += outputNameIndent*' ' + "'" + name + "'\n"
+            outputNameLines += outputNameIndent*' ' + "'" + name + "',\n"
     outputLines = ''
     for line in outputs.splitlines():
         outputLines += replace_z_with_self_dot_z(' '*8 + line + '\n')
@@ -534,6 +548,9 @@ def alparse(fileNameBase, className, code="Text", directory=None,
     """
     if not directory == None:
         fileNameBase = os.path.join(directory, fileNameBase)
+
+    # remove those stupid alTmp files
+    os.system('rm ' + os.path.join(directory, 'alTmp.*'))
 
     inFileStrings = alparsein(fileNameBase, code)
     cFileStrings = alparsec(fileNameBase, code, linear)
