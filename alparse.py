@@ -254,7 +254,7 @@ def input_lines(inputs):
             inputNameLines += inputNameIndent*' ' + "'" + var + "']"
             inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr
         else:
-            inputNameLines += inputNameIndent*' ' + "'" + var + "'\n"
+            inputNameLines += inputNameIndent*' ' + "'" + var + "',\n"
             inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr + '\n'
     return inputNameLines, inputLines
 
