@@ -44,7 +44,7 @@ class <name>(DynamicSystem):
 <numZees>
 
     # intialize the time
-    t = intOpts['ti']
+    t = 0.0
 
     def __init__(self):
         '''Just sets the constants.'''
@@ -58,7 +58,30 @@ class <name>(DynamicSystem):
 
 <constants>
     def f(self, x, t):
-        '''Returns the derivative of the states.'''
+        '''Returns the derivative of the states.
+
+        Parameters:
+        -----------
+        x : ndarray
+            State vector
+        t : ndarray
+            Time
+
+        Returns:
+        --------
+        f : ndarray
+            dx/dt
+
+        Raises:
+        -------
+
+        See also:
+        ---------
+
+        Examples:
+        ---------
+
+        '''
 
         # defines the parameters from the attribute
         for parameter, value in self.parameters.items():
@@ -71,7 +94,7 @@ class <name>(DynamicSystem):
         # calculates inputs
         u = self.inputs(t)
         for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'u[' + str(i) + ']')
+            exec(name + ' = ' + 'self.u[' + str(i) + ']')
 
 <eom>
         # plug in the derivatives for returning
@@ -82,15 +105,54 @@ class <name>(DynamicSystem):
         return f
 
     def inputs(self, t):
-        '''Returns the input value for time t.'''
+        '''Returns the inputs to the system.
+
+        Parameters:
+        -----------
+        t : ndarray
+            Time
+
+        Returns:
+        --------
+        u : ndarray
+            u(t)
+
+        Raises:
+        -------
+
+        See also:
+        ---------
+
+        Examples:
+        ---------
+
+        '''
         t = T
         u = zeros(len(self.inputNames))
 <inputs>
         return u
 
     def outputs(self, x):
-        '''Returns the outputs of the system with respec to the current
-        state.
+        '''Returns the outputs of the system.
+
+        Parameters:
+        -----------
+        x : ndarray
+            Current state
+
+        Returns:
+        --------
+        y : ndarray
+            y(t)
+
+        Raises:
+        -------
+
+        See also:
+        ---------
+
+        Examples:
+        ---------
 
         '''
         # defines the parameters locally from the attribute
@@ -106,5 +168,5 @@ class <name>(DynamicSystem):
         # plug in the derivatives for returning
         y = zeros(len(self.outputNames))
         for i, name in enumerate(self.outputNames):
-            exec('y[' + str(i) + '] = ' + name + 'p')
+            exec('y[' + str(i) + '] = ' + name)
         return y
