@@ -241,18 +241,20 @@ def write_dictionary(varName, dictionary, indentation=0, oneLine=False):
         A string formatted nicely to declare a dictionary.
 
     '''
-    dictString = ' '*indentation + varName + '  = {'
+    dictString = ' '*indentation + varName + ' = {'
     if oneLine:
         afterVar = ', '
         indent = 0
     else:
-        indent = len(dictionary.keys())
+        indent = len(dictString)
         afterVar = ',\n'
-    for key, val in dictionary.items():
-        line = "'" + key + "' : " + str(val)
-        if key == dictionary.keys()[0]:
+    keyList = dictionary.keys()
+    keyList.sort()
+    for key in keyList:
+        line = "'" + key + "' : " + str(dictionary[key])
+        if key == keyList[0]:
             dictString += line + afterVar
-        elif key == dictionary.keys()[-1]:
+        elif key == keyList[-1]:
             dictString += ' ' * indent + line + "}\n"
         else:
             dictString += ' ' * indent + line + afterVar
@@ -377,7 +379,7 @@ def parameter_lines(parameters):
     for par in pars:
         key, val = par.split(' = ')
         parDict[key] = float(val)
-    return write_dictionary(parDict)
+    return write_dictionary('parameters', parDict, indentation=4)
 
 def writeCxx(inFileStrings, cFileStrings, className):
     raise Exception

@@ -15,7 +15,8 @@ def test_write_list():
 
 def test_write_dictionary():
     oneLine = "  x = {'a' : 1.0, 'b' : 2.0, 'c' : 3.0}\n"
-    mulLine = "  x = {'a' : 1.0,\n       'b' : 2.0,\n      'c' : 3.0}\n"
-    assert alp.write_dictionary('x', {'a':1.0,'b':2.0,'c':3.0}, indentation=2,
-            oneLine=True)
-    assert alp.write_dictionary('x', {'a':1.0,'b':2.0,'c':3.0}, indentation=2)
+    mulLine = "  x = {'a' : 1.0,\n       'b' : 2.0,\n       'c' : 3.0}\n"
+    assert alp.write_dictionary('x', {'a':1.0,'b':2.0,'c':3.0},
+                                indentation=2, oneLine=True) == oneLine
+    assert alp.write_dictionary('x', {'a':1.0,'b':2.0,'c':3.0},
+                                indentation=2) == mulLine
