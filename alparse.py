@@ -27,7 +27,7 @@ def writeText(fileNameBase, className, inFileStrings, cFileStrings,
     else:
         classFile = className
     intopts, parameters, states = inFileStrings
-    variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
+    variables, constants, odefunc, outputs, inputs, linear, outputNames, dependentVarLines = cFileStrings
 
     fp = open(classFile + ".txt", "w")
 
@@ -129,7 +129,7 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     outputfile = open(classFile + '.py', 'w')
 
     intopts, parameters, states = inFileStrings
-    variables, constants, odefunc, outputs, inputs, linear, outputNames = cFileStrings
+    variables, constants, odefunc, outputs, inputs, linear, outputNames, dependentVarLines = cFileStrings
     #print "intopts:\n", intopts
     #print "parameters:\n", parameters
     #print "states:\n", states
@@ -157,6 +157,7 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<intOpts>', int_opt_lines(intopts), data)
     data = re.sub('<eom>', eom_lines(odefunc), data)
     data = re.sub('<constants>', constants_lines(constants), data)
+    data = re.sub('<dependent>', dependentVarLines, data)
 
     outputfile.write(data)
 
@@ -485,15 +486,15 @@ def alparsec(fileNameBase, code, linMat, stateNames):
                 l += fp.next().strip()
             if code == "Text" or code == "Python":
                 l = l[:-1]
-            l += "\n"
+            # store all of the equations that aren't zees
             if l[0] != 'z':
                 nonZees.append(l)
+            l += "\n"
             if foundSpecified:
                 inputs += l
             else:
                 odefunc += l
-    for line in nonZees:
-        print line
+    print nonZees
 
     outputs = ""
     linear = ""
@@ -538,10 +539,11 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     linearBeg = ''
     numOutputsFound = 0
     nonStateOutputs = []
+    dependentVars = [x.split(' = ')[0] for x in nonZees]
     for name in outputNames:
-        if name not in stateNames:
+        if name not in stateNames and name not in dependentVars:
             nonStateOutputs.append(name)
-    print "nonStateOutputs:", nonStateOutputs
+    print nonStateOutputs
     for l in fp:
         l = l.strip()
         if l:
@@ -558,12 +560,25 @@ def alparsec(fileNameBase, code, linMat, stateNames):
                 linearBeg += l
             if leftSide in nonStateOutputs:
                 numOutputsFound += 1
+                print numOutputsFound
             continue
         break
 
     linear = linearBeg + linear
 
-    return variables, constants, odefunc, outputs, inputs, linear, outputNames
+    # write out the dependent variable equations
+    dependentVarLines = ''
+    for line in nonZees:
+        print line
+        # add some indentation and replace the zees
+        dependentVarLines += ' '*8 + replace_z_with_self_dot_z(line) + '\n'
+
+    print dependentVarLines
+
+    stuff = (variables, constants, odefunc, outputs, inputs, linear,
+            outputNames, dependentVarLines)
+
+    return stuff
 
 def alparse(fileNameBase, className, code="Text", directory=None,
             linear=('A','B','C','D')):

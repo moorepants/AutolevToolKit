@@ -165,6 +165,7 @@ class <name>(DynamicSystem):
             exec(name + ' = ' + 'x[' + str(i) + ']')
 
         # calculate the outputs
+<dependent>
 <outputs>
         # plug in the derivatives for returning
         y = zeros(len(self.outputNames))
