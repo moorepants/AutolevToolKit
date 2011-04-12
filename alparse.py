@@ -216,10 +216,10 @@ def int_opt_lines(intopts):
 def zee_line(variables):
     print "processing the zee number"
     # find the z variable declaration
-    firstCharacters = [x[0] for x in variables]
+    firstCharacters = [x[:2] for x in variables]
     print firstCharacters
     try:
-        index = firstCharacters.index('z')
+        index = firstCharacters.index('z[')
         numZees = re.sub('z\[(\d*)\]', r'\1', variables[index])
         return ' '*4 + 'z = zeros(' + numZees + ')'
     except:
