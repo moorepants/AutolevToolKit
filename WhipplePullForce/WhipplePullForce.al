@@ -50,7 +50,7 @@ points nd,dn,nf,fn
 
 % w:        wheelbase                          [m]
 % c:        trail                              [m]
-% lambda:   steer axis tilt                    [rad]
+% lam:   steer axis tilt                    [rad]
 % g:        gravity                            [n/kg]
 % v:        forward speed                      [m/s]
 % rR:       rear wheel radius                  [m]
@@ -79,7 +79,7 @@ points nd,dn,nf,fn
 % Tdelta:  steer torque                       [n*m]
 % TthetaR: rear wheel torque                  [n*m]
 
-constants w,c,lambda,g,v
+constants w,c,lam,g,v
 constants rR,mR,IRxx,IRyy
 constants xB,zB,mB,IBxx,IByy,IBzz,IBxz
 constants xH,zH,mH,IHxx,IHyy,IHzz,IHxz
@@ -102,15 +102,15 @@ specified Tphi,Tdelta,TthetaR
 % l4: the distance in the f3> direction from the steer point to the
 %     center of mass of the fork
 
-d1    =  cos(lambda)*(c+w-rR*tan(lambda))
-d3    = -cos(lambda)*(c-rF*tan(lambda))
-d2    = (rR+d1*sin(lambda)-rF+d3*sin(lambda))/cos(lambda)
+d1    =  cos(lam)*(c+w-rR*tan(lam))
+d3    = -cos(lam)*(c-rF*tan(lam))
+d2    = (rR+d1*sin(lam)-rF+d3*sin(lam))/cos(lam)
 % rear wheel inertia
 id11  =  IRxx
 id22  =  IRyy
 id33  =  IRxx
-cf    =  [cos(lambda),0,-sin(lambda);0,1,0;sin(lambda),0,cos(lambda)]
-% rotate bicycle frame inertia through lambda
+cf    =  [cos(lam),0,-sin(lam);0,1,0;sin(lam),0,cos(lam)]
+% rotate bicycle frame inertia through lam
 IB    =  [IBxx,0,IBxz;0,IByy,0;IBxz,0,IBzz]
 IBrot =  cf*IB*transpose(cf)
 % bicycle frame inertia
@@ -120,7 +120,7 @@ ic22  =  IBrot[2,2]
 ic23  =  IBrot[2,3]
 ic31  =  IBrot[3,1]
 ic33  =  IBrot[3,3]
-% rotate fork inertia matrix through lambda
+% rotate fork inertia matrix through lam
 IH    =  [IHxx,0,IHxz;0,IHyy,0;IHxz,0,IHzz]
 IHrot =  cf*IH*transpose(cf)
 % fork/handlebar inertia
@@ -135,10 +135,10 @@ if11  =  IFxx
 if22  =  IFyy
 if33  =  IFxx
 % mass center locations
-l1    =  xB*cos(lambda)-zB*sin(lambda)-rR*sin(lambda)
-l2    =  xB*sin(lambda)+zB*cos(lambda)+rR*cos(lambda)
-l3    =  cos(lambda)*xH-sin(lambda)*zH-c*cos(lambda)-w*cos(lambda)
-l4    =  rR*cos(lambda)+xH*sin(lambda)+zH*cos(lambda)
+l1    =  xB*cos(lam)-zB*sin(lam)-rR*sin(lam)
+l2    =  xB*sin(lam)+zB*cos(lam)+rR*cos(lam)
+l3    =  cos(lam)*xH-sin(lam)*zH-c*cos(lam)-w*cos(lam)
+l4    =  rR*cos(lam)+xH*sin(lam)+zH*cos(lam)
 % masses
 massc    =  mB
 massd    =  mR
@@ -156,8 +156,8 @@ points pf
 % xpf: the distance from the rear wheel contact point to the pull force point
 % zpf: the distance from the rear wheel contact point to the pull force point
 constants xpf, zpf
-l5    =  xpf*cos(lambda)-zpf*sin(lambda)-rR*sin(lambda)
-l6    =  xpf*sin(lambda)+zpf*cos(lambda)+rR*cos(lambda)
+l5    =  xpf*cos(lam)-zpf*sin(lam)-rR*sin(lam)
+l6    =  xpf*sin(lam)+zpf*cos(lam)+rR*cos(lam)
 % Fphi:    lateral roll disturbance force     [n*m]
 specified Fphi
 
@@ -202,7 +202,7 @@ simprot(n,a,3,q3)
 simprot(a,b,1,q4)
 
 % frame pitch
-simprot(b,c,2,q5+lambda)
+simprot(b,c,2,q5+lam)
 
 % rear wheel rotation
 simprot(c,d,2,q6)

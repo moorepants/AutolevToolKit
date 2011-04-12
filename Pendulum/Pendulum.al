@@ -67,7 +67,7 @@ solve(zero, omega')
 % add some extra things to output
 k = ke(a)
 p = -m * g * dot(p_no_ao>, n2>)
-longoutput = 2 * theta + dot(a1>, n1>) + ke(a) + p + 2 + omega'
+longoutput = 2 * theta + dot(a1>, n1>) + ke(a) + p + 2 + omega
 
 % linear model
 A[1,1] = d(omega', omega)
