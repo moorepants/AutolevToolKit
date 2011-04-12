@@ -9,6 +9,13 @@ def test_test1_al():
 
 def test_write_list():
     oneLine = '  x = [1, 2, 3, 4]\n'
-    multLine = '  x = [1,\n       2,\n       3,\n       4]\n'
+    mulLine = '  x = [1,\n       2,\n       3,\n       4]\n'
     assert alp.write_list('x', ['1', '2', '3', '4'], indentation=2, oneLine=True) == oneLine
-    assert alp.write_list('x', ['1', '2', '3', '4'], indentation=2) == multLine
+    assert alp.write_list('x', ['1', '2', '3', '4'], indentation=2) == mulLine
+
+def test_write_dictionary():
+    oneLine = "  x = {'a' : 1.0, 'b' : 2.0, 'c' : 3.0}\n"
+    mulLine = "  x = {'a' : 1.0,\n       'b' : 2.0,\n      'c' : 3.0}\n"
+    assert alp.write_dictionary('x', {'a':1.0,'b':2.0,'c':3.0}, indentation=2,
+            oneLine=True)
+    assert alp.write_dictionary('x', {'a':1.0,'b':2.0,'c':3.0}, indentation=2)

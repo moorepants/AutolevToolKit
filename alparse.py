@@ -220,25 +220,43 @@ def write_list(varName, valList, indentation=0, oneLine=False):
             listString += ' '*indent + val + afterVar
     return listString
 
-def write_dictionary(varName, dictionary):
-    '''Returns a text string for a list declaration.
+def write_dictionary(varName, dictionary, indentation=0, oneLine=False):
+    '''Returns a text string for a dictionary declaration.
 
     Parameters
     ----------
     varName : string
         The name of the variable to store the list.
-    valList : list of strings
-        A list of the values to be stored in varName.
+    dictionary : dictionary
+        A dictionary of the values to be stored in varName. The key is a string
+        and the value is a number.
+    indention : integer
+        Number of space you want the string to be indented.
     oneLine : boolean
         Make this true if you want the list to be on one line.
 
     Returns
     -------
-    listString : string
-        A string formatted nicely to declare a list.
+    dictString : string
+        A string formatted nicely to declare a dictionary.
 
     '''
-    pass
+    dictString = ' '*indentation + varName + '  = {'
+    if oneLine:
+        afterVar = ', '
+        indent = 0
+    else:
+        indent = len(dictionary.keys())
+        afterVar = ',\n'
+    for key, val in dictionary.items():
+        line = "'" + key + "' : " + str(val)
+        if key == dictionary.keys()[0]:
+            dictString += line + afterVar
+        elif key == dictionary.keys()[-1]:
+            dictString += ' ' * indent + line + "}\n"
+        else:
+            dictString += ' ' * indent + line + afterVar
+    return dictString
 
 def constants_lines(constants):
     print "processing constants"
