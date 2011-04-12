@@ -181,7 +181,7 @@ def first_line(string, numIndents):
     indent = len(firstLine)
     return firstLine, indent
 
-def replace_z_with_self_dot_z(string):
+def self_dot_z(string):
     return re.sub('(z\[\d*\])', r'self.\1', string)
 
 def write_list(varName, valList, indentation=0, oneLine=False):
@@ -264,7 +264,7 @@ def constants_lines(constants):
     constantsLines = ''
     constantList = []
     for line in constants:
-        constantsLines += ' '*8 + replace_z_with_self_dot_z(line) + '\n'
+        constantsLines += ' '*8 + self_dot_z(line) + '\n'
         if line[0] != 'z':
             var, trash = line.split(' = ')
             constantList.append(var)
@@ -324,7 +324,7 @@ def output_lines(outputNames, outputs):
             outputNameLines += outputNameIndent*' ' + "'" + name + "',\n"
     outputLines = ''
     for line in outputs.splitlines():
-        outputLines += replace_z_with_self_dot_z(' '*8 + line + '\n')
+        outputLines += self_dot_z(' '*8 + line + '\n')
     return outputNameLines, outputLines
 
 def input_lines(inputs):
@@ -372,18 +372,12 @@ def parameter_lines(parameters):
     '''
     print "processing the parameters"
     pars = parameters.splitlines()
-    fsp = '    '
-    parLines = fsp + 'parameters = {'
-    largeIndent = len(parLines)
+    print pars
+    parDict = {}
     for par in pars:
-        var, val = par.split(' = ')
-        if par == pars[0]:
-            parLines +=  "'" + var + "':" + val + ",\n"
-        elif par == pars[-1]:
-            parLines +=  ' '*largeIndent + "'" + var + "':" + val + "}"
-        else:
-            parLines +=  ' '*largeIndent + "'" + var + "':" + val + ",\n"
-    return parLines
+        key, val = par.split(' = ')
+        parDict[key] = float(val)
+    return write_dictionary(parDict)
 
 def writeCxx(inFileStrings, cFileStrings, className):
     raise Exception
@@ -657,7 +651,7 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     for line in nonZees:
         print line
         # add some indentation and replace the zees
-        dependentVarLines += ' '*8 + replace_z_with_self_dot_z(line) + '\n'
+        dependentVarLines += ' '*8 + self_dot_z(line) + '\n'
 
     print dependentVarLines
 
