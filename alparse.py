@@ -127,11 +127,9 @@ def writeC(inFileStrings, cFileStrings, className):
     fp_implementation.close()
 
 def writePython(inFileStrings, cFileStrings, className, directory=None):
-    '''
-    Writes a basic Python class definition.
+    '''Writes a basic Python class definition.
 
     '''
-    template = open('DynamicSystemTemplate.py', 'r')
 
     if not directory == None:
         classFile = os.path.join(directory, className)
@@ -155,8 +153,14 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
 
     state_lines(states)
 
-    data = template.read()
+    # open up the template file
+    template = open('DynamicSystemTemplate.py', 'r')
 
+    # grab the template file
+    data = template.read()
+    template.close()
+
+    # substitute for all the a tags
     data = re.sub('<name>', className, data)
     data = re.sub('<stateNames>', state_lines(states)[0], data)
     data = re.sub('<initialConditions>', state_lines(states)[1], data)
@@ -169,12 +173,12 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
     intOptString = var_declarations_to_dictionary(intopts, 'intOpts', indentation=4)
-    parameterString = var_declarations_to_dictionary(parameters, 'parameters', indentation=4)
     data = re.sub('<intOpts>', intOptString, data)
+    parameterString = var_declarations_to_dictionary(parameters, 'parameters', indentation=4)
     data = re.sub('<parameters>', parameterString, data)
-    outputfile.write(data)
 
-    template.close()
+    # right the modified data to file
+    outputfile.write(data)
     outputfile.close()
 
 def first_line(string, numIndents):
@@ -284,7 +288,6 @@ def eom_lines(odefunc):
     for line in eom:
         eomLines += ' '*8 + re.sub('(z\[\d*\])', r'self.\1', line) + '\n'
     return eomLines
-
 
 def zee_line(variables):
     print "processing the zee number"
