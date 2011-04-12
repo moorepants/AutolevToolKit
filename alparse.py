@@ -168,8 +168,10 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<eom>', eom_lines(odefunc), data)
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
-    data = re.sub('<intOpts>', var_declarations_to_dictionary(intopts), data)
-    data = re.sub('<parameters>', var_declarations_to_dictionary(parameters), data)
+    intOptString = var_declarations_to_dictionary(intopts, 'intOpts', indentation=4)
+    parameterString = var_declarations_to_dictionary(parameters, 'parameters', indentation=4)
+    data = re.sub('<intOpts>', intOptString, data)
+    data = re.sub('<parameters>', parameterString, data)
     outputfile.write(data)
 
     template.close()
@@ -214,7 +216,7 @@ def write_list(varName, valList, indentation=0, oneLine=False):
         if val == valList[0]:
             listString += val + afterVar
         elif val == valList[-1]:
-            listString += ' '*indent + val + ']\n'
+            listString += ' '*indent + val + ']'
         else:
             listString += ' '*indent + val + afterVar
     return listString
@@ -254,7 +256,7 @@ def write_dictionary(varName, dictionary, indentation=0, oneLine=False):
         if key == keyList[0]:
             dictString += line + afterVar
         elif key == keyList[-1]:
-            dictString += ' ' * indent + line + "}\n"
+            dictString += ' ' * indent + line + "}"
         else:
             dictString += ' ' * indent + line + afterVar
     return dictString
