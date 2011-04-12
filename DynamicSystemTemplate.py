@@ -59,18 +59,18 @@ class <name>(DynamicSystem):
 
 <constants>
     def f(self, x, t):
-        '''Returns the derivative of the states.
+        '''Returns the time derivative of the state vector.
 
         Parameters:
         -----------
-        x : ndarray
+        x : ndarray, shape(n,)
             State vector
-        t : ndarray
+        t : float
             Time
 
         Returns:
         --------
-        f : ndarray
+        f : ndarray, shape(n,)
             dx/dt
 
         Raises:
@@ -97,6 +97,7 @@ class <name>(DynamicSystem):
         for i, name in enumerate(self.inputNames):
             exec(name + ' = ' + 'self.u[' + str(i) + ']')
 
+        # equations of motion
 <eom>
         # plug in the derivatives for returning
         f = zeros(len(self.stateNames))
@@ -110,13 +111,13 @@ class <name>(DynamicSystem):
 
         Parameters:
         -----------
-        t : ndarray
+        t : float
             Time
 
         Returns:
         --------
-        u : ndarray
-            u(t)
+        u : ndarray, shape(p,)
+            Inputs a time t.
 
         Raises:
         -------
@@ -128,8 +129,10 @@ class <name>(DynamicSystem):
         ---------
 
         '''
-        T = t
+        T = t # this is hack because autolev likes to capitlize everything
+        # initialize the u vector
         u = zeros(len(self.inputNames))
+        # calculate the inputs
 <inputs>
         return u
 
@@ -138,12 +141,12 @@ class <name>(DynamicSystem):
 
         Parameters:
         -----------
-        x : ndarray
+        x : ndarray, shape(n,)
             Current state
 
         Returns:
         --------
-        y : ndarray
+        y : ndarray, shape(m,)
             y(t)
 
         Raises:
@@ -164,11 +167,14 @@ class <name>(DynamicSystem):
         for i, name in enumerate(self.stateNames):
             exec(name + ' = ' + 'x[' + str(i) + ']')
 
-        # calculate the outputs
+        # these are dependent variables that may be needed for the main
+        # calculations
 <dependent>
+        # calculate the outputs
 <outputs>
         # plug in the derivatives for returning
         y = zeros(len(self.outputNames))
         for i, name in enumerate(self.outputNames):
             exec('y[' + str(i) + '] = ' + name)
+
         return y
