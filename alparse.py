@@ -158,7 +158,6 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = template.read()
 
     data = re.sub('<name>', className, data)
-    data = re.sub('<parameters>', parameter_lines(parameters), data)
     data = re.sub('<stateNames>', state_lines(states)[0], data)
     data = re.sub('<initialConditions>', state_lines(states)[1], data)
     data = re.sub('<inputNames>', input_lines(inputs)[0], data)
@@ -166,11 +165,11 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<outputNames>', output_lines(outputNames, outputs)[0], data)
     data = re.sub('<outputs>', output_lines(outputNames, outputs)[1], data)
     data = re.sub('<numZees>', zee_line(variables), data)
-    data = re.sub('<intOpts>', int_opt_lines(intopts), data)
     data = re.sub('<eom>', eom_lines(odefunc), data)
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
-
+    data = re.sub('<intOpts>', var_declarations_to_dictionary(intopts), data)
+    data = re.sub('<parameters>', var_declarations_to_dictionary(parameters), data)
     outputfile.write(data)
 
     template.close()
@@ -284,23 +283,6 @@ def eom_lines(odefunc):
         eomLines += ' '*8 + re.sub('(z\[\d*\])', r'self.\1', line) + '\n'
     return eomLines
 
-def int_opt_lines(intopts):
-    '''
-    Write the integration options as a dictionary definiton for a Python file.
-
-    '''
-    print "processing the integration options"
-    intOpts = intopts.splitlines()
-    intOptLines, intOptIndent = first_line('intOpts = {', 1)
-    for opt in intOpts:
-        var, val = opt.split(' = ')
-        if opt == intOpts[0]:
-            intOptLines +=  "'" + var + "':" + val + ",\n"
-        elif opt == intOpts[-1]:
-            intOptLines +=  ' '*intOptIndent + "'" + var + "':" + val + "}"
-        else:
-            intOptLines +=  ' '*intOptIndent + "'" + var + "':" + val + ",\n"
-    return intOptLines
 
 def zee_line(variables):
     print "processing the zee number"
@@ -367,19 +349,34 @@ def state_lines(states):
             initLines += ' '*initIndent + val + ',\n'
     return stateLines, initLines
 
-def parameter_lines(parameters):
-    '''
-    Write the parameters as a dictionary definiton for a Python file.
+def var_declarations_to_dictionary(mulLineEqs, varName, indentation=0, oneLine=False):
+    '''Write a multiline string of simple variable declarations as a dictionary
+    definiton for a Python file.
+
+    Parameters
+    ----------
+    mulLineEqs : string
+        This string should be in the form "a = 2.0\nb = 3.0\n"
+    varName : string
+        The name of the variable in the generated string.
+    indentation : int
+        Number of spaces of indentation for the entire string.
+    oneLine : boolean
+        Put the dictionary declaration all on one line.
+
+    Returns
+    -------
+    varDecDict : dictionary
 
     '''
-    print "processing the parameters"
-    pars = parameters.splitlines()
-    print pars
-    parDict = {}
-    for par in pars:
-        key, val = par.split(' = ')
-        parDict[key] = float(val)
-    return write_dictionary('parameters', parDict, indentation=4)
+    eqs = mulLineEqs.splitlines()
+    eqDict = {}
+    for eq in eqs:
+        key, val = eq.split(' = ')
+        eqDict[key] = float(val)
+    return write_dictionary(varName, eqDict,
+                            indentation=indentation,
+                            oneLine=oneLine)
 
 def writeCxx(inFileStrings, cFileStrings, className):
     raise Exception
