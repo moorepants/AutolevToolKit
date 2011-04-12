@@ -182,8 +182,8 @@ def constants_lines(constants):
             var, trash = line.split(' = ')
             constantList.append(var)
     for cst in constantList:
-        constantsLines = re.sub('(' + cst + ')',
-                                r"self.parameters['\1']",
+        constantsLines = re.sub('(\W)(' + cst + ')(\W)',
+                                r"\1self.parameters['\2']\3",
                                 constantsLines)
     return constantsLines
 
@@ -216,16 +216,14 @@ def int_opt_lines(intopts):
 def zee_line(variables):
     print "processing the zee number"
     # find the z variable declaration
-    for var in variables:
-        if var[0] == 'z':
-            numZees = re.sub('z\[(\d*)\]', r'\1', var)
-        else:
-            zees = False
-    if zees:
+    firstCharacters = [x[0] for x in variables]
+    print firstCharacters
+    try:
+        index = firstCharacters.index('z')
+        numZees = re.sub('z\[(\d*)\]', r'\1', variables[index])
         return ' '*4 + 'z = zeros(' + numZees + ')'
-    else:
+    except:
         return '    # no zees here'
-    return zeeLine
 
 def output_lines(outputNames, outputs):
     print "processing the outputs"

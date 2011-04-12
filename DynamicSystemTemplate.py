@@ -164,11 +164,6 @@ class <name>(DynamicSystem):
         for i, name in enumerate(self.stateNames):
             exec(name + ' = ' + 'x[' + str(i) + ']')
 
-        # calculates inputs
-        u = self.inputs(t)
-        for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'self.u[' + str(i) + ']')
-
         # calculate the outputs
 <outputs>
         # plug in the derivatives for returning
