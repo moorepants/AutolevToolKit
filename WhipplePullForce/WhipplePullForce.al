@@ -3,7 +3,7 @@
 % Creation Date: March 31, 2011
 % Author: Jason Moore
 % Description: Generates the nonlinear and linear equations of motion for the
-% Whipple bicycle model.
+% Whipple bicycle model with four inputs.
 %---------------------------------------------------------------------%
 %         Default Settings
 %---------------------------------------------------------------------%
@@ -50,34 +50,34 @@ points nd,dn,nf,fn
 
 % w:        wheelbase                          [m]
 % c:        trail                              [m]
-% lam:   steer axis tilt                    [rad]
+% lam:      steer axis tilt                    [rad]
 % g:        gravity                            [n/kg]
 % v:        forward speed                      [m/s]
 % rR:       rear wheel radius                  [m]
-% mR:      rear wheel mass                    [kg]
+% mR:       rear wheel mass                    [kg]
 % IRxx:     rear wheel mass moment of inertia  [kg*m^2]
 % IRyy:     rear wheel mass moment of inertia  [kg*m^2]
 % xB:       rear body center of mass location  [m]
 % zB:       rear body center of mass location  [m]
-% mB:      rear body mass                     [kg]
+% mB:       rear body mass                     [kg]
 % IBxx:     rear body mass moment of inertia   [kg*m^2]
 % IByy:     rear body mass moment of inertia   [kg*m^2]
 % IBzz:     rear body mass moment of inertia   [kg*m^2]
 % IBxz:     rear body mass moment of inertia   [kg*m^2]
 % xH:       fork center of mass location       [m]
 % zH:       fork center of mass location       [m]
-% mH:      fork mass                          [kg]
+% mH:       fork mass                          [kg]
 % IHxx:     fork mass moment of inertia        [kg*m^2]
 % IHyy:     fork mass moment of inertia        [kg*m^2]
 % IHzz:     fork mass moment of inertia        [kg*m^2]
 % IHxz:     fork mass moment of inertia        [kg*m^2]
 % rF:       front wheel radius                 [m]
-% mF:      front wheel mass                   [kg]
+% mF:       front wheel mass                   [kg]
 % IFxx:     front wheel mass moment of inertia [kg*m^2]
 % IFyy:     front wheel mass moment of inertia [kg*m^2]
-% Tphi:    roll torque                        [n*m]
-% Tdelta:  steer torque                       [n*m]
-% TthetaR: rear wheel torque                  [n*m]
+% Tphi:     roll torque                        [n*m]
+% Tdelta:   steer torque                       [n*m]
+% TthetaR:  rear wheel torque                  [n*m]
 
 constants w,c,lam,g,v
 constants rR,mR,IRxx,IRyy
@@ -150,6 +150,7 @@ T6    =  TthetaR
 T7    =  Tdelta
 
 % add stuff for the lateral roll disturbance force
+
 % pf: point at which the lateral force is applied
 points pf
 % location of the point
@@ -161,7 +162,10 @@ l6    =  xpf*sin(lam)+zpf*cos(lam)+rR*cos(lam)
 % Fphi:    lateral roll disturbance force     [n*m]
 specified Fphi
 
+%---------------------------------------------------------------------%
 % declare the generalized coordinates
+%---------------------------------------------------------------------%
+
 % q1:  perpendicular distance from the n2> axis to the rear contact
 %      point in the ground plane
 % q2:  perpendicular distance from the n1> axis to the rear contact
@@ -233,7 +237,7 @@ p_fn_nf>=0>
 p_do_pf>=l5*c1>+l6*c3> % rear wheel center to pull force point
 
 %---------------------------------------------------------------------%
-%         define the generalized speeds
+%         define the kinematical differential equations
 %---------------------------------------------------------------------%
 
 q1'=u1
@@ -323,7 +327,7 @@ gravity(g*n3>,c,d,e,f)
 torque(a/b,T4*a1>) % roll torque
 torque(c/d,T6*c2>) % rear wheel torque
 torque(c/e,T7*c3>) % steer torque
-force_pf>+=Fphi*n2> % add the pull force
+force_pf>+=Fphi*n2> % pull force
 
 %---------------------------------------------------------------------%
 %         equations of motion
@@ -814,29 +818,21 @@ encode aMat,bMat,cMat,dMat
 unitsystem kg, meter, sec
 
 input w=1.02 m,c=0.08 m,lam=3.141592653589793/10 rad,g=9.81 kg
-
 input rR=0.3 m,mR=2 kg,IRxx=0.0603 kg*m^2,IRyy=0.12 kg*m^2
-
 input xB=0.3 m,zB=-0.9 m,mB=85 kg
-
 input IBxx=9.2 kg*m^2,IByy=11 kg*m^2,IBzz=2.8 kg*m^2,IBxz=2.4 kg*m^2
-
 input xH=0.9 m,zH=-0.7 m,mH=4 kg
-
 input IHxx=0.05892 kg*m^2,IHyy=0.06 kg*m^2,IHzz=0.00708 kg*m^2
-
 input IHxz=-0.00756 kg*m^2
-
 input rF=0.35 m,mF=3 kg,IFxx=0.1405 kg*m^2,IFyy=0.28 kg*m^2
-
 input xpf=0.23 m,zpf=-0.91 m
 
 output q1 m, q2 m, q3 rad, q4 rad, q5 rad, q6 rad, q7 rad, q8 rad
 output u1 m/s, u2 m/s, u3 rad/s, u4 rad/s, u5 rad/s, u6 rad/s, u7 rad/s, u8 rad/s
 output q9 m, q10 m
 
-code dynamics() WhipplePullForce.c
-code algebraic() WhipplePullForce.m
+code dynamics() WhipplePullForceDynamics.c
+code algebraic() WhipplePullForceAlgebraic.m
 
 %---------------------------------------------------------------------%
 %         save output
