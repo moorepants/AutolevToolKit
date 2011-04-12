@@ -143,20 +143,22 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
 
     state_lines(states)
 
-    for line in template:
-        line = re.sub('<name>', className, line)
-        line = re.sub('<parameters>', parameter_lines(parameters), line)
-        line = re.sub('<stateNames>', state_lines(states)[0], line)
-        line = re.sub('<initialConditions>', state_lines(states)[1], line)
-        line = re.sub('<inputNames>', input_lines(inputs)[0], line)
-        line = re.sub('<inputs>', input_lines(inputs)[1], line)
-        line = re.sub('<outputNames>', output_lines(outputNames, outputs)[0], line)
-        line = re.sub('<outputs>', output_lines(outputNames, outputs)[1], line)
-        line = re.sub('<numZees>', zee_line(variables), line)
-        line = re.sub('<intOpts>', int_opt_lines(intopts), line)
-        line = re.sub('<eom>', eom_lines(odefunc), line)
-        line = re.sub('<constants>', constants_lines(constants), line)
-        outputfile.write(line)
+    data = template.read()
+
+    data = re.sub('<name>', className, data)
+    data = re.sub('<parameters>', parameter_lines(parameters), data)
+    data = re.sub('<stateNames>', state_lines(states)[0], data)
+    data = re.sub('<initialConditions>', state_lines(states)[1], data)
+    data = re.sub('<inputNames>', input_lines(inputs)[0], data)
+    data = re.sub('<inputs>', input_lines(inputs)[1], data)
+    data = re.sub('<outputNames>', output_lines(outputNames, outputs)[0], data)
+    data = re.sub('<outputs>', output_lines(outputNames, outputs)[1], data)
+    data = re.sub('<numZees>', zee_line(variables), data)
+    data = re.sub('<intOpts>', int_opt_lines(intopts), data)
+    data = re.sub('<eom>', eom_lines(odefunc), data)
+    data = re.sub('<constants>', constants_lines(constants), data)
+
+    outputfile.write(data)
 
     template.close()
     outputfile.close()
@@ -170,6 +172,7 @@ def replace_z_with_self_dot_z(string):
     return re.sub('(z\[\d*\])', r'self.\1', string)
 
 def constants_lines(constants):
+    print "processing constants"
     constants = constants.splitlines()
     constantsLines = ''
     constantList = []
@@ -185,6 +188,7 @@ def constants_lines(constants):
     return constantsLines
 
 def eom_lines(odefunc):
+    print "processing the equations of motion"
     eom = odefunc.splitlines()
     eomLines = ''
     for line in eom:
@@ -196,6 +200,7 @@ def int_opt_lines(intopts):
     Write the integration options as a dictionary definiton for a Python file.
 
     '''
+    print "processing the integration options"
     intOpts = intopts.splitlines()
     intOptLines, intOptIndent = first_line('intOpts = {', 1)
     for opt in intOpts:
@@ -209,6 +214,7 @@ def int_opt_lines(intopts):
     return intOptLines
 
 def zee_line(variables):
+    print "processing the zee number"
     # find the z variable declaration
     for var in variables:
         if var[0] == 'z':
@@ -222,6 +228,7 @@ def zee_line(variables):
     return zeeLine
 
 def output_lines(outputNames, outputs):
+    print "processing the outputs"
     outputNameLines, outputNameIndent = first_line('outputNames = [', 1)
     for name in outputNames:
         if name == outputNames[0]:
@@ -236,6 +243,7 @@ def output_lines(outputNames, outputs):
     return outputNameLines, outputLines
 
 def input_lines(inputs):
+    print "processing the inputs"
     inputs = inputs.splitlines()
     inputNameLines, inputNameIndent = first_line('inputNames = [', 1)
     for i, inpt in enumerate(inputs):
@@ -252,6 +260,7 @@ def input_lines(inputs):
     return inputNameLines, inputLines
 
 def state_lines(states):
+    print "processing the states"
     states = states.splitlines()
     fsp = '    '
     stateLines = fsp + 'stateNames = ['
@@ -276,6 +285,7 @@ def parameter_lines(parameters):
     Write the parameters as a dictionary definiton for a Python file.
 
     '''
+    print "processing the parameters"
     pars = parameters.splitlines()
     fsp = '    '
     parLines = fsp + 'parameters = {'
