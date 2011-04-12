@@ -202,7 +202,7 @@ def zee_line(variables):
     for var in variables:
         if var[0] == 'z':
             numZees = re.sub('z\[(\d*)\]', r'\1', var)
-    zeeLine = ' '*4 + 'z = np.zeros(' + numZees + ')'
+    zeeLine = ' '*4 + 'z = zeros(' + numZees + ')'
     return zeeLine
 
 def output_lines(outputNames, outputs):

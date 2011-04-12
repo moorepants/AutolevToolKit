@@ -1,4 +1,7 @@
-class <name>():
+from numpy import zeros
+from DynamicSystem import DynamicSystem
+
+class <name>(DynamicSystem):
     """
 <description>
 
@@ -7,7 +10,7 @@ class <name>():
     # model name
     name = '<name>'
 
-    filename = string.join(string.split(name), "")
+    filename = ''.join(name.split())
     directory = 'models/' + filename + '/'
 
     # numerical integration parameters
@@ -29,13 +32,13 @@ class <name>():
 <outputNames>
 
     # initialize state vector
-    x = np.zeros(len(stateNames))
+    x = zeros(len(stateNames))
 
     # initialize output vector
-    y = np.zeros(len(outputNames))
+    y = zeros(len(outputNames))
 
     # initialize input vector
-    u = np.zeros(len(inputNames))
+    u = zeros(len(inputNames))
 
     # initializes the zees
 <numZees>
@@ -54,7 +57,6 @@ class <name>():
             exec(parameter + ' = ' + str(value))
 
 <constants>
-
     def f(self, x, t):
         '''Returns the derivative of the states.'''
 
@@ -64,15 +66,14 @@ class <name>():
 
         # sets the current state
         for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']'))
+            exec(name + ' = ' + 'x[' + str(i) + ']')
 
         # calculates inputs
         u = self.inputs(t)
         for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'u[' + str(i) + ']'))
+            exec(name + ' = ' + 'u[' + str(i) + ']')
 
 <eom>
-
         # plug in the derivatives for returning
         f = zeros(len(stateNames))
         for i, name in enumerate(self.stateNames):
@@ -83,9 +84,8 @@ class <name>():
     def inputs(self, t):
         '''Returns the input value for time t.'''
         t = T
-        u = np.zeros(len(self.inputNames))
+        u = zeros(len(self.inputNames))
 <inputs>
-
         return u
 
     def outputs(self, x):
@@ -99,11 +99,10 @@ class <name>():
 
         # sets the current state
         for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']'))
+            exec(name + ' = ' + 'x[' + str(i) + ']')
 
         # calculate the outputs
 <outputs>
-
         # plug in the derivatives for returning
         y = zeros(len(self.outputNames))
         for i, name in enumerate(self.outputNames):
