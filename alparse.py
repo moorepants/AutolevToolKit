@@ -184,6 +184,40 @@ def first_line(string, numIndents):
 def replace_z_with_self_dot_z(string):
     return re.sub('(z\[\d*\])', r'self.\1', string)
 
+def write_list(varName, valList, oneLine=False):
+    '''Returns a text string for a list declaration.
+
+    Parameters
+    ----------
+    varName : string
+        The name of the variable to store the list.
+    valList : list of strings
+        A list of the values to be stored in varName.
+    oneLine : boolean
+        Make this true if you want the list to be on one line.
+
+    Returns
+    -------
+    listString : string
+        A string formatted nicely to declare a list.
+
+    '''
+    listString = varName + ' = ['
+    if oneLine:
+        afterVar = ', '
+        indent = 0
+    else:
+        indent = len(listString)
+        afterVar = ',\n'
+    for val in valList:
+        if val == valList[0]:
+            listString += val + afterVar
+        elif val == valList[-1]:
+            listString += ' '*indent + val + ']\n'
+        else:
+            listString += ' '*indent + val + afterVar
+    return listString
+
 def constants_lines(constants):
     print "processing constants"
     constants = constants.splitlines()
