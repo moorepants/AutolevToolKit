@@ -8,7 +8,7 @@ def test_test1_al():
     #os.remove('test1_al.txt')
 
 def test_write_list():
-    oneLine = 'x = [1, 2, 3, 4]\n'
-    multLine = 'x = [1,\n     2,\n     3,\n     4]\n'
-    assert alp.write_list('x', ['1', '2', '3', '4'], oneLine=True) == oneLine
-    assert alp.write_list('x', ['1', '2', '3', '4']) == multLine
+    oneLine = '  x = [1, 2, 3, 4]\n'
+    multLine = '  x = [1,\n       2,\n       3,\n       4]\n'
+    assert alp.write_list('x', ['1', '2', '3', '4'], indentation=2, oneLine=True) == oneLine
+    assert alp.write_list('x', ['1', '2', '3', '4'], indentation=2) == multLine
