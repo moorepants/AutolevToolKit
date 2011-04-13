@@ -611,7 +611,7 @@ def alparsec(fileNameBase, code, linMat, stateNames):
             # anyways.
             linearLine = False
             for matrix in linMat:
-                if l[:len(matrix)] == matrix:
+                if l[:len(matrix) + 1] == matrix + '[':
                     linearLine = True
             if linearLine:
                 linear += l
@@ -655,8 +655,10 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     # write out the dependent variable equations
     dependentVarLines = ''
     for line in nonZees:
-        # add some indentation and replace the zees
-        dependentVarLines += ' '*8 + self_dot_z(line) + '\n'
+        var, rest = line.split(' = ')
+        if var in outputNames:
+            # add some indentation and replace the zees
+            dependentVarLines += ' '*8 + self_dot_z(line) + '\n'
 
     stuff = (variables, constants, odefunc, outputs, inputs, linear,
             outputNames, dependentVarLines)
