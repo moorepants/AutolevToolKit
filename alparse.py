@@ -151,7 +151,7 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     #print "linear:\n", linear
     #print "outputNames:\n", outputNames
 
-    state_lines(states)
+    state_and_initial_lines(states)
 
     # open up the template file
     template = open('DynamicSystemTemplate.py', 'r')
@@ -161,9 +161,16 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     template.close()
 
     # substitute for all the a tags
+    stateNameLines, initCondLines = state_and_initial_lines(states)
+    data = re.sub('<stateNames>', stateNameLines, data)
+    data = re.sub('<initialConditions>', initCondLines, data)
+
+    intOptString = var_declarations_to_dictionary(intopts, 'intOpts', indentation=4)
+    data = re.sub('<intOpts>', intOptString, data)
+    parameterString = var_declarations_to_dictionary(parameters, 'parameters', indentation=4)
+    data = re.sub('<parameters>', parameterString, data)
+
     data = re.sub('<name>', className, data)
-    data = re.sub('<stateNames>', state_lines(states)[0], data)
-    data = re.sub('<initialConditions>', state_lines(states)[1], data)
     data = re.sub('<inputNames>', input_lines(inputs)[0], data)
     data = re.sub('<inputs>', input_lines(inputs)[1], data)
     data = re.sub('<outputNames>', output_lines(outputNames, outputs)[0], data)
@@ -172,12 +179,9 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<eom>', eom_lines(odefunc), data)
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
-    intOptString = var_declarations_to_dictionary(intopts, 'intOpts', indentation=4)
-    data = re.sub('<intOpts>', intOptString, data)
-    parameterString = var_declarations_to_dictionary(parameters, 'parameters', indentation=4)
-    data = re.sub('<parameters>', parameterString, data)
 
-    # right the modified data to file
+
+    # write the modified data to file
     outputfile.write(data)
     outputfile.close()
 
@@ -187,6 +191,7 @@ def first_line(string, numIndents):
     return firstLine, indent
 
 def self_dot_z(string):
+    '''Returns a string with z[x] changed to self.z[x].'''
     return re.sub('(z\[\d*\])', r'self.\1', string)
 
 def write_list(varName, valList, indentation=0, oneLine=False):
@@ -196,7 +201,7 @@ def write_list(varName, valList, indentation=0, oneLine=False):
     ----------
     varName : string
         The name of the variable to store the list.
-    valList : list of strings
+    valList : list
         A list of the values to be stored in varName.
     indention : integer
         Number of space you want the string to be indented.
@@ -216,10 +221,15 @@ def write_list(varName, valList, indentation=0, oneLine=False):
     else:
         indent = len(listString)
         afterVar = ',\n'
-    for val in valList:
-        if val == valList[0]:
+    for i, val in enumerate(valList):
+        # if it is a string put quotes around it
+        if type(val) == type('z'):
+            val = "'" + val + "'"
+        else:
+            val = str(val)
+        if i == 0:
             listString += val + afterVar
-        elif val == valList[-1]:
+        elif i == len(valList) - 1:
             listString += ' '*indent + val + ']'
         else:
             listString += ' '*indent + val + afterVar
@@ -293,7 +303,6 @@ def zee_line(variables):
     print "processing the zee number"
     # find the z variable declaration
     firstCharacters = [x[:2] for x in variables]
-    print firstCharacters
     try:
         index = firstCharacters.index('z[')
         numZees = re.sub('z\[(\d*)\]', r'\1', variables[index])
@@ -333,25 +342,17 @@ def input_lines(inputs):
             inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr + '\n'
     return inputNameLines, inputLines
 
-def state_lines(states):
-    print "processing the states"
+def state_and_initial_lines(states):
     states = states.splitlines()
-    fsp = '    '
-    stateLines = fsp + 'stateNames = ['
-    stateIndent = len(stateLines)
-    initLines = fsp + 'initialConditions = ['
-    initIndent = len(initLines)
+    stateNameList = []
+    initCondList = []
     for state in states:
         var, val = state.split(' = ')
-        if state == states[0]:
-            stateLines +=  "'" + var + "',\n"
-            initLines += val + ',\n'
-        elif state == states[-1]:
-            stateLines +=  ' '*stateIndent + "'" + var + "']"
-            initLines += ' '*initIndent + val + ']'
-        else:
-            stateLines +=  ' '*stateIndent + "'" + var + "',\n"
-            initLines += ' '*initIndent + val + ',\n'
+        stateNameList.append(var)
+        initCondList.append(float(val))
+
+    stateLines = write_list('stateNames', stateNameList, indentation=4)
+    initLines = write_list('initialConditions', initCondList, indentation=4)
     return stateLines, initLines
 
 def var_declarations_to_dictionary(mulLineEqs, varName, indentation=0, oneLine=False):
@@ -453,6 +454,8 @@ def alparsein(fileNameBase, code):
     fp.close()
     return intopts, parameters, states
 
+# this function is also inside of state_and_initial_lines, they need to be
+# merged
 def state_name_list(states):
     stateNames = []
     for line in states.splitlines():
@@ -527,7 +530,6 @@ def alparsec(fileNameBase, code, linMat, stateNames):
             # Handle multi-line statements
             while l[-1] != ';':
                 l += fp.next().strip()
-
             if code == "Text" or code == "Python":
                 l = l[:-1]  # remove the semi-colon at end
             l += "\n"
@@ -544,7 +546,6 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     odefunc = ""
     inputs = ""
     foundSpecified = False
-    nonZees = []
     for l in fp:
         l = l.strip()
         if l == "/* Update derivative array prior to integration step */":
@@ -570,15 +571,18 @@ def alparsec(fileNameBase, code, linMat, stateNames):
                 l += fp.next().strip()
             if code == "Text" or code == "Python":
                 l = l[:-1]
-            # store all of the equations that aren't zees
-            if l[0] != 'z':
-                nonZees.append(l)
             l += "\n"
             if foundSpecified:
                 inputs += l
             else:
                 odefunc += l
-    print nonZees
+
+    # grab all the non zee equations out of the odefunc
+    nonZees = []
+    for eq in odefunc.splitlines():
+        # store all of the equations that aren't zees
+        if eq[0] != 'z':
+            nonZees.append(eq)
 
     outputs = ""
     linear = ""
@@ -627,7 +631,6 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     for name in outputNames:
         if name not in stateNames and name not in dependentVars:
             nonStateOutputs.append(name)
-    print nonStateOutputs
     for l in fp:
         l = l.strip()
         if l:
@@ -644,7 +647,6 @@ def alparsec(fileNameBase, code, linMat, stateNames):
                 linearBeg += l
             if leftSide in nonStateOutputs:
                 numOutputsFound += 1
-                print numOutputsFound
             continue
         break
 
@@ -653,11 +655,8 @@ def alparsec(fileNameBase, code, linMat, stateNames):
     # write out the dependent variable equations
     dependentVarLines = ''
     for line in nonZees:
-        print line
         # add some indentation and replace the zees
         dependentVarLines += ' '*8 + self_dot_z(line) + '\n'
-
-    print dependentVarLines
 
     stuff = (variables, constants, odefunc, outputs, inputs, linear,
             outputNames, dependentVarLines)
