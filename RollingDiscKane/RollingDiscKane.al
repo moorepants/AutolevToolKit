@@ -1,13 +1,16 @@
 autoz off
 autorhs off
 factoring off
+
 newtonian n
 frames a, b
 points cn
+bodies c
+
+constants m, g, r, I, J
 variables x', y', psi', phi', theta'
 motionvariables' wx',wy', wz'
-bodies c
-constants m, g, r, I, J
+
 mass c=m
 inertia c(b), I, J, I, 0, 0, 0
 
@@ -53,5 +56,5 @@ H_C_CO> = dot(I_C_CO>>, w_c_n>)
 unitsystem kg,m,s
 output zero[1], zero[2], zero[3]
 
-code algebraic() rollingdisc_kane.c
-
+code dynamics() RollingDiscKaneDyanmics.c
+save RollingDiscKane.all
