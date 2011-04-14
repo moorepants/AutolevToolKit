@@ -14,7 +14,8 @@ import os
 import re
 
 def seekto(fp, string):
-    '''Sets the file location to the first line matching string.'''
+    '''Sets the file location to the first line matching string. With reference
+    to the beginning of the file.'''
     # go back to the beginning of the file
     fp.seek(0)
     # go through line by line and stop when string is found
@@ -244,7 +245,7 @@ def write_dictionary(varName, dictionary, indentation=0, oneLine=False):
         The name of the variable to store the list.
     dictionary : dictionary
         A dictionary of the values to be stored in varName. The key is a string
-        and the value is a number.
+        and the value is a float.
     indention : integer
         Number of space you want the string to be indented.
     oneLine : boolean
@@ -463,6 +464,20 @@ def state_name_list(states):
         stateNames.append(state)
     return stateNames
 
+def equation_lines_to_dictionary(lines):
+    '''Returns a dictionary such that the left hand side of the equations
+    in lines is the keyword and the right hand side is the pair.
+
+    lines should look like this: 'a = b\nc=  a + b + d\n' with an '=' as the
+    separator.
+
+    '''
+    dictionary = {}
+    for eq in lines.splitlines():
+        var, expr = eq.split('=')
+        dictionary[var.strip()] = expr.strip()
+    return dictionary
+
 def alparsec(fileNameBase, code, linMat, stateNames):
     """Parse the .c file from Autolev to grab:
         1) list of variables that appear in all numerical calculations
@@ -536,6 +551,7 @@ def alparsec(fileNameBase, code, linMat, stateNames):
             constants += l
         else:
             break
+
 
     # Seek to the line in the ode func that has the comment above the equations
     seekto(fp, "/* Update variables after integration step */" )
