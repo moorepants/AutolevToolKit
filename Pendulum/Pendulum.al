@@ -17,7 +17,7 @@ bodies a
 % i : pendulum inertia
 constants g, l, m, i
 
-% states are [theta, omega, theta', omega']
+% states are [theta, omega]
 
 variables theta'
 
