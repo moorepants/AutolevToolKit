@@ -1,0 +1,87 @@
+[Name]
+Pendulum
+
+[Integration Options]
+ti = 0.0, sec
+tf = 1.0, sec
+ts = 0.1, sec
+abserr = 1.0E-08
+relerr = 1.0E-07
+
+[Parameters]
+g = 9.81, meter/sec^2
+i = 0.5, kg*meter^2
+l = 2.0, meter
+m = 4.0, kg
+
+[States]
+omega = 0.0
+theta = 0.0
+
+[Constants]
+z[8] = g*m
+z[15] = g*l*m
+
+[Inputs]
+torque = 10*sin(0.5235987755982988+6.283185307179586*T)
+force = 0
+
+[Equations of Motion]
+thetap = omega
+z[1] = cos(theta)
+z[2] = sin(theta)
+z[3] = pow(z[1],2) + pow(z[2],2)
+z[4] = l*z[3]
+z[10] = i*z[3]
+z[11] = z[3]*z[10] + 0.25*m*pow(z[4],2)
+z[9] = torque*z[3] - 0.5*z[4]*(force+z[8]*z[2])
+z[12] = z[9]/z[11]
+omegap = z[12]
+
+[Dependent Variables]
+
+[Output Names]
+omega
+theta
+k
+p
+longoutput
+
+[Outputs]
+k = 0.125*(m*pow(z[4],2)+4*i*pow(z[3],2))*pow(omega,2)
+p = -0.5*g*l*m*z[1]
+longoutput = 2 + 2*theta + p + z[1] + omega + 0.125*(m*pow(z[4],2)+4*i*pow(z[3],2))*pow(omega,2)
+
+[Linear]
+z[13] = z[8]*z[1]*z[4]/z[11]
+z[14] = (m*pow(z[4],2)+4*i*pow(z[3],2))*omega
+z[16] = z[15]*z[2]
+z[17] = 1 + 0.25*(m*pow(z[4],2)+4*i*pow(z[3],2))*omega
+A[0][0] = 0
+A[0][1] = -0.5*z[13]
+A[1][0] = 1
+A[1][1] = 0
+B[0][0] = z[3]/z[11]
+B[0][1] = -0.5*z[4]/z[11]
+B[1][0] = 0
+B[1][1] = 0
+C[0][0] = 1
+C[0][1] = 0
+C[1][0] = 0
+C[1][1] = 1
+C[2][0] = 0.25*z[14]
+C[2][1] = 0
+C[3][0] = 0
+C[3][1] = 0.5*z[16]
+C[4][0] = z[17]
+C[4][1] = 2 + 0.5*z[16] - sin(theta)
+D[0][0] = 0
+D[0][1] = 0
+D[1][0] = 0
+D[1][1] = 0
+D[2][0] = 0
+D[2][1] = 0
+D[3][0] = 0
+D[3][1] = 0
+D[4][0] = 0
+D[4][1] = 0
