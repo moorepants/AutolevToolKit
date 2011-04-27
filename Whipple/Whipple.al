@@ -8,7 +8,7 @@
 %         Default Settings
 %---------------------------------------------------------------------%
 
-%autoz on
+autoz on
 autorhs off
 overwrite all
 beepsound off
@@ -262,10 +262,6 @@ v2pts(n,f,fo,fn)
 
 % set the n3> component of p_nd_nf> equal to zero
 pzero=dot(p_nd_nf>,n3>)
-
-output pzero
-code algebraic() pitch.m
-stop
 
 %---------------------------------------------------------------------%
 %         motion constraints
