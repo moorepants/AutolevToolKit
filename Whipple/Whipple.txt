@@ -37,17 +37,17 @@ zB = -0.9, m
 zH = -0.7, m
 
 [States]
-q1 = 0.0
-q2 = 0.0
-q3 = 0.0
-q4 = 0.0
-q5 = 0.0
-q6 = 0.0
-q7 = 0.0
-q8 = 0.0
-u4 = 0.0
-u6 = 0.0
-u7 = 0.0
+q1 = 0.0, m
+q2 = 0.0, m
+q3 = 0.0, rad
+q4 = 0.0, rad
+q5 = 0.0, rad
+q6 = 0.0, rad
+q7 = 0.0, rad
+q8 = 0.0, rad
+u4 = 0.0, rad/s
+u6 = 0.0, rad/s
+u7 = 0.0, rad/s
 
 [Constants]
 d1 = cos(lam)*(c+w-rR*tan(lam))
