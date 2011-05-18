@@ -3,7 +3,8 @@
 % Creation Date: March 31, 2011
 % Author: Jason Moore
 % Description: Generates the nonlinear and linear equations of motion for the
-% Whipple bicycle model with four inputs.
+% Whipple bicycle model with four inputs: steer torque, roll torque, and
+% lateral pull force.
 %---------------------------------------------------------------------%
 %         Default Settings
 %---------------------------------------------------------------------%
@@ -295,9 +296,8 @@ dependent[3]=dot(v_fn_n>,a1>)
 dependent[4]=dot(v_fn_n>,a2>)
 dependent[5]=dt(pzero)
 
-% the rear wheel angular speed, u6, the roll rate, u4,the
-% steering rate, u7, and the rider lean rate, u9 are taken to be the independent
-% generalized speeds
+% the rear wheel angular speed, u6, the roll rate, u4, and the steering rate,
+% u7, are taken to be the independent generalized speeds
 
 constrain(dependent[u1,u2,u3,u5,u8])
 
