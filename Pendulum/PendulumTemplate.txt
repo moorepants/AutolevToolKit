@@ -1,0 +1,82 @@
+[Name]
+Pendulum
+
+[States]
+# state name = initial condition
+theta = 0.
+omega = 0.
+
+[Parameters]
+# parameter name = value
+g = 9.81
+i = 1.
+l = 1.
+m = 1.
+
+[Equations of Motion]
+# Intermediate variables can come first. The 'z' variable name is reserved for
+# variables that may need to be available in other functions.
+z[1] = cos(theta)
+z[2] = sin(theta)
+z[3] = z[1]**2 + z[2]**2
+z[4] = l*z[3]
+z[8] = g*m
+z[9] = torque*z[3] - 0.5*z[8]*z[2]*z[4]
+z[10] = i*z[3]
+z[11] = z[3]*z[10] + 0.25*m*z[4]**2
+z[12] = z[9]/z[11]
+z[13] = z[8]*z[1]*z[4]/z[11]
+z[14] = (m*z[4]**2+4*i*z[3]**2)*omega
+z[15] = g*l*m
+z[16] = z[15]*z[2]
+# Include a blank line between the end of the intermediate variables and the
+# ordered list of the derivatives of the states. The state order should be the
+# same as in [States]
+
+thetap = omega
+omegap = z[12]
+
+[Inputs]
+# Intermediate variables can come first. The 'z' variable name is reserved for
+# variables that may need to be available in other functions.
+s = sin(2*pi*t + pi/6)
+# Include a blank line between the end of the intermediate variables and the
+# ordered list of the inputs.
+
+torque = 10*s
+
+[Outputs]
+# Intermediate variables can come first. The 'z' variable name is reserved for
+# variables that may need to be available in other functions.
+s = sin(2*pi*t + pi/6)
+# Include a blank line between the end of the intermediate variables and the
+# ordered list of outputs.
+
+theta
+omega
+k = 0.125*(m*z[4]**2+4*i*z[3]**2)*omega**2
+p = -0.5*g*l*m*z[1]
+th2 = 2*theta
+
+[Linear Model]
+A[0,0] = 0
+A[0,1] = 1
+A[1,0] = -0.5*z[13]
+A[1,1] = 0
+B[0] = 0
+B[1] = z[3]/z[11]
+C[0,0] = 1
+C[0,1] = 0
+C[1,0] = 0
+C[1,1] = 1
+C[2,0] = 0
+C[2,1] = 0.25*z[14]
+C[3,0] = 0.5*z[16]
+C[3,1] = 0
+C[4,0] = 2
+C[4,1] = 0
+D[0] = 0
+D[1] = 0
+D[2] = 0
+D[3] = 0
+D[4] = 0
