@@ -478,6 +478,22 @@ def equation_lines_to_dictionary(lines):
         dictionary[var.strip()] = expr.strip()
     return dictionary
 
+def equation_dictionary_to_text(dictionary, code, sort=False):
+    '''Returns a string with an equation on each line.'''
+    keys = dictionary.keys()
+    if sort:
+        keys.sort()
+    lines = ''
+    if code == 'Python':
+        ending = ''
+    elif code == 'C':
+        ending = ';'
+    else:
+        ending = ''
+    for key in keys:
+        lines += key + ' = ' + dictionary[key] + ending + '\n'
+    return lines
+
 def alparsec(fileNameBase, code, linMat, stateNames):
     """Parse the .c file from Autolev to grab:
         1) list of variables that appear in all numerical calculations

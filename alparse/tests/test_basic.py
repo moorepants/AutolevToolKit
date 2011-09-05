@@ -33,8 +33,4 @@ def test_equation_lines_to_dictionary():
     lines = 'a = b\nc = a + b + d\nb=2*3*b/5\n'
     dictionary = {'a':'b','c':'a + b + d','b':'2*3*b/5'}
     result = alp.equation_lines_to_dictionary(lines)
-    for key, val in result.items():
-        try:
-            assert dictionary[key] == val
-        except KeyError:
-            assert 1 == 2
+    assert result == dictionary
