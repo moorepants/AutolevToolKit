@@ -1,5 +1,5 @@
 function WhippleAlgebraic
-% File  WhippleAlgebraic.m  created by Autolev 4.1 on Wed Apr 27 11:44:10 2011
+% File  WhippleAlgebraic.m  created by Autolev 4.1 on Tue Oct 04 13:35:57 2011
 
 global   c g IBxx IBxz IByy IBzz IFxx IFyy IHxx IHxz IHyy IHzz IRxx IRyy lam mB mF mH mR rF rR w xB xH zB zH q1 q2 q3 q4 q5 q6 q7 q8 u4 u6 u7;
 global   Tdelta Tphi TthetaR;

@@ -1,6 +1,6 @@
 function WhippleDynamics
 SolveOrdinaryDifferentialEquations
-% File  WhippleDynamics.m  created by Autolev 4.1 on Wed Apr 27 11:43:54 2011
+% File  WhippleDynamics.m  created by Autolev 4.1 on Tue Oct 04 13:35:52 2011
 
 
 %===========================================================================
