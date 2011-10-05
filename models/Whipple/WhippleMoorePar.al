@@ -8,8 +8,8 @@
 %         Default Settings
 %---------------------------------------------------------------------%
 
-autoz on
-autorhs off
+autoz off
+autorhs all
 overwrite all
 beepsound off
 
@@ -35,40 +35,41 @@ frames a, b
 
 bodies c, d, e, f
 
-% declare four points
-% nd: rear contact point on ground
-% dn: rear contact point on wheel
-% nf: front contact point on ground
-% fn: front contact point on wheel
+% declare two points for the wheel contacts
+% dn: rear contact point
+% fn: front contact point
 
 points nd, dn, nf, fn
+
+% declare a point on the steer axis
+points ce
 
 %---------------------------------------------------------------------%
 %         constants and variables
 %---------------------------------------------------------------------%
 
+% rF: radius of front wheel
+% rR: radius of rear wheel
+% d1: the perpendicular distance from the steer axis to the center
+%     of the rear wheel (rear offset)
+% d2: the distance between the intersections of the front and rear
+%     offset lines with the steer axis
+% d3: the perpendicular distance from the steer axis to the center
+%     of the front wheel (fork offset)
+% l1: the distance in the c1> direction from the center of the rear
+%     wheel to the frame center of mass
+% l2: the distance in the c3> direction from the center of the rear
+%     wheel to the frame center of mass
+% l3: the distance in the e1> direction from the front wheel center to
+%     the center of mass of the fork
+% l4: the distance in the e3> direction from the front wheel center to
+%     the center of mass of the fork
+
+constants rF, rR, d{1:3}, l{1:4}
+
 % gravity
 
 constants g
-
-% rF: radius of front wheel
-% rR: radius of rear wheel
-% d1: the perpendicular distance from the head tube axis to the center
-%     of the rear wheel
-% d2: the distance between the intersections of the front and rear
-%     offset lines with the steer axis
-% d3: the perpendicular distance from the head tube axis to the center
-%     of the front wheel (fork offset)
-% l1: the distance in the d1> direction from the center of the rear
-%     wheel to the frame center of mass
-% l2: the distance in the d3> direction from the center of the rear
-%     wheel to the frame center of mass
-% l3: the distance in the f1> direction from the steer point to the
-%     center of mass of the fork
-% l4: the distance in the f3> direction from the steer point to the
-%     center of mass of the fork
-
-constants rF, rR, d{1:3}, l{1:4}
 
 % masses
 
@@ -76,11 +77,12 @@ constants mc, md, me, mf
 
 % inertia
 
-constants ic11, ic22, ic33, ic12, ic23, ic31
-constants id11, id22, id33
-constants ie11, ie22, ie33, ie12, ie23, ie31
-constants if11, if22, if33
+constants ic11, ic22, ic33, ic31
+constants id11, id22
+constants ie11, ie22, ie33, ie31
+constants if11, if22
 
+% input torques
 specified T4, T6, T7
 
 %---------------------------------------------------------------------%
@@ -111,10 +113,10 @@ motionvariables' u{8}'
 %---------------------------------------------------------------------%
 
 mass c=mc, d=md, e=me, f=mf
-inertia c, ic11, ic22, ic33, ic12, ic23, ic31
-inertia d, id11, id22, id33
-inertia e, ie11, ie22, ie33, ie12, ie23, ie31
-inertia f, if11, if22, if33
+inertia c, ic11, ic22, ic33, 0, 0, ic31
+inertia d, id11, id22, id11
+inertia e, ie11, ie22, ie33, 0, 0, ie31
+inertia f, if11, if22, if11
 
 %---------------------------------------------------------------------%
 %         angular relationships                                       %
@@ -143,17 +145,28 @@ simprot(e, f, 2, q8)
 %---------------------------------------------------------------------%
 
 % locate the center of mass for each body
-p_no_do> = q1 * n1> + q2 * n2> - rR * b3> % newtonian origin to rear wheel center
-p_do_co> = l1 * c1> + l2 * c3> % rear wheel center to bicycle frame center
-p_do_fo> = d1 * c1> + d2 * e3> + d3 * e1> % rear wheel center to the front wheel center
-% should this be from the steer point or the front wheel center
-p_fo_eo> = l3 * e1> + l4 * e3> % front wheel center to fork/handlebar center
+
+% newtonian origin to rear wheel center
+p_no_do> = q1 * n1> + q2 * n2> - rR * b3>
+% rear wheel center to bicycle frame center
+p_do_co> = l1 * c1> + l2 * c3>
+% rear wheel center to steer axis point
+p_do_ce> = d1 * c1>
+% steer axis point to the front wheel center
+p_ce_fo> = d2 * e3> + d3 * e1>
+% front wheel center to fork/handlebar center
+p_fo_eo> = l3 * e1> + l4 * e3>
 
 % locate the ground contact points
 p_do_dn> = rr * b3>
-p_dn_nd> = 0>
-p_fo_fn> = rF * unitvec(a3> - dot(e2>, a3>) * e2>)
-p_fn_nf> = 0>
+p_fo_fn> = rF * cross(cross(e2>, a3>), e2>)
+
+%---------------------------------------------------------------------%
+%         define the pitch configuration constraint
+%---------------------------------------------------------------------%
+
+% set the a3> component of p_dn_fn> equal to zero
+pzero = dot(p_dn_fn>, a3>)
 
 %---------------------------------------------------------------------%
 %         define the kinematical differential equations
@@ -172,84 +185,96 @@ q8' = u8
 %         angular velocities
 %---------------------------------------------------------------------%
 
-angvel(n,a)
-angvel(n,b)
-angvel(n,c)
-angvel(n,d)
-angvel(n,e)
-angvel(n,f)
+angvel(n, a)
+angvel(n, b)
+angvel(n, c)
+angvel(n, d)
+angvel(n, e)
+angvel(n, f)
 
 %---------------------------------------------------------------------%
 %         velocities
 %---------------------------------------------------------------------%
 
 v_do_n> = dt(p_no_do>, n)
-v_co_n> = dt(p_no_co>, n)
-v_eo_n> = dt(p_no_eo>, n)
-v_fo_n> = dt(p_no_fo>, n)
+v2pts(n, c, do, co)
+v2pts(n, c, do, ce)
+v2pts(n, e, ce, fo)
+v2pts(n, e, fo, eo)
 
+% wheel contact velocities
 v2pts(n, d, do, dn)
 v2pts(n, f, fo, fn)
-
-%---------------------------------------------------------------------%
-%         define the pitch configuration constraint
-%---------------------------------------------------------------------%
-
-% set the a3> component of p_nd_nf> equal to zero
-pzero = dot(p_nd_nf>, a3>)
-
-%---------------------------------------------------------------------%
-%         motion constraints
-%---------------------------------------------------------------------%
-
-% due to the assumptions of no side slip and no slip rolling the
-% velocities of the front and rear wheel contact points, cn and gn,
-% cannot have components of velocity in the ground plane
-
-dependent[1]=dot(v_dn_n>,a1>)
-dependent[2]=dot(v_dn_n>,a2>)
-dependent[3]=dot(v_fn_n>,a1>)
-dependent[4]=dot(v_fn_n>,a2>)
-dependent[5]=dt(pzero)
-
-% the rear wheel angular speed, u6, the roll rate, u4,the steering rate, u7,
-% are taken to be the independent generalized speeds
-
-constrain(dependent[u1,u2,u3,u5,u8])
 
 %---------------------------------------------------------------------%
 %         angular accelerations
 %---------------------------------------------------------------------%
 
-alf_c_n>=dt(w_c_n>,n)
-alf_d_n>=dt(w_d_n>,n)
-alf_e_n>=dt(w_e_n>,n)
-alf_f_n>=dt(w_f_n>,n)
+alf_c_n> = dt(w_c_n>, n)
+pause
+alf_d_n> = dt(w_d_n>, n)
+pause
+alf_e_n> = dt(w_e_n>, n)
+pause
+alf_f_n> = dt(w_f_n>, n)
+pause
 
 %---------------------------------------------------------------------%
 %         accelerations
 %---------------------------------------------------------------------%
 
 a_co_n>=dt(v_co_n>,n)
+pause
 a_do_n>=dt(v_do_n>,n)
+pause
 a_eo_n>=dt(v_eo_n>,n)
+pause
 a_fo_n>=dt(v_fo_n>,n)
+pause
 
 %---------------------------------------------------------------------%
 %         forces and torques
 %---------------------------------------------------------------------%
 
-gravity(g*n3>,c,d,e,f)
-torque(a/b,T4*a1>) % roll torque
-torque(c/d,T6*c2>) % rear wheel torque
-torque(c/e,T7*c3>) % steer torque
+gravity(g * n3>, c, d, e, f)
+pause
+torque(a/b, T4 * a1>) % roll torque
+pause
+torque(c/d, T6 * c2>) % rear wheel torque
+pause
+torque(c/e, T7 * c3>) % steer torque
+pause
+
+%---------------------------------------------------------------------%
+%         motion constraints
+%---------------------------------------------------------------------%
+
+% due to the assumptions of no side slip and no slip rolling the
+% velocities of the front and rear wheel contact points, dn and fn,
+% cannot have components of velocity in the ground plane
+
+dependent[1] = dot(v_dn_n>, a1>)
+pause
+dependent[2] = dot(v_dn_n>, a2>)
+pause
+dependent[3] = dot(v_fn_n>, a1>)
+pause
+dependent[4] = dot(v_fn_n>, a2>)
+pause
+dependent[5] = dt(pzero)
+pause
+
+% the rear wheel angular speed, u6, the roll rate, u4,the steering rate, u7,
+% are taken to be the independent generalized speeds
+
+constrain(dependent[u1, u2, u3, u5, u8])
 
 %---------------------------------------------------------------------%
 %         equations of motion
 %---------------------------------------------------------------------%
 
-zero=fr()+frstar()
-solve(zero,u4',u6',u7')
+zero = fr() + frstar()
+solve(zero, u4', u6', u7')
 
 %---------------------------------------------------------------------%
 %         linearization
