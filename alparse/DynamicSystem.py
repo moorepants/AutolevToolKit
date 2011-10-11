@@ -1,17 +1,15 @@
-from numpy import zeros, sin, cos, pi, dot
-from numpy import linspace, array, rank
+from numpy import zeros, dot
+from numpy import linspace, rank
 from numpy.linalg import eig
 from scipy.integrate import odeint
-from matplotlib.pyplot import figure, plot, show, legend, xlabel, title
+from matplotlib.pyplot import plot, show, legend, xlabel, title
 from matplotlib.pyplot import scatter, colorbar, cm, grid, axis
 import pickle
 import os
-import string
 
 class DynamicSystem:
     """
     Dynamic System class.
-
 
     """
 
@@ -19,7 +17,7 @@ class DynamicSystem:
     name = 'DynamicSystem'
 
     filename = ''.join(name.split())
-    directory = 'models/' + filename + '/'
+    directory = '../models/' + filename + '/'
 
     # numerical integration parameters
     intOpts = {'ti':0.0,
@@ -42,7 +40,7 @@ class DynamicSystem:
 
     # output names
     outputNames = ['y1',
-                  'y2']
+                   'y2']
 
     # initialize state vector
     x = zeros(len(stateNames))
@@ -53,14 +51,11 @@ class DynamicSystem:
     # initialize input vector
     u = zeros(len(inputNames))
 
-    # initializes the zees
+    # initialize the zees
     z = zeros(1)
 
     # sets the time to the initial time
-    t = 0.0
-
-    def __init__(self, model=None, parameters=None):
-        '''Nothing'''
+    t = intOpts['ti']
 
     def f(self, x, t):
         '''
@@ -202,9 +197,9 @@ class DynamicSystem:
         print self.inputNames
 
         # initialize the vectors
-        x = zeros((len(t), len(self.stateNames)))
-        y = zeros((len(t), len(self.outputNames)))
-        u = zeros((len(t), len(self.inputNames)))
+        x = zeros((len(t), len(self.x)))
+        y = zeros((len(t), len(self.y)))
+        u = zeros((len(t), len(self.u)))
 
         print u.shape
 
@@ -239,16 +234,14 @@ class DynamicSystem:
             #print "self.y after int = ", self.y
 
         # make a dictionary of the integration and save it to file
-        intDict = {'t':t,
-                   'x':x,
-                   'y':y,
-                   'model':self.name,
-                   'params':self.parameters}
+        self.simResults = {'t':t,
+                           'x':x,
+                           'y':y,
+                           'u':u,
+                           'model':self.name,
+                           'params':self.parameters}
 
-        # save the simulation to file
-        self.save_sim(intDict)
-
-    def save_sim(self, intDict):
+    def save_sim(self):
         '''
         Save simulation to file
 
@@ -257,15 +250,14 @@ class DynamicSystem:
             pass
         else:
             os.system('mkdir ' + self.directory)
-        pickle.dump(intDict, open(self.directory + self.filename + '.p', 'w'))
+        pickle.dump(self.simResults, open(self.directory + self.filename + '.p', 'w'))
 
     def plot(self):
         '''
         Makes a plot of the simulation
 
         '''
-        intDict = pickle.load(open(self.directory + self.filename + '.p'))
-        plot(intDict['t'], intDict['y'])
+        plot(self.simResults['t'], self.simResults['y'])
         legend(self.outputNames)
         xlabel('Time [sec]')
         show()

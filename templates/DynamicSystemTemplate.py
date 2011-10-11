@@ -1,6 +1,6 @@
 from numpy import zeros
 from numpy import sin, cos, tan
-from DynamicSystem import DynamicSystem
+from alparse import DynamicSystem
 
 class <name>(DynamicSystem):
     """

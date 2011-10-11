@@ -137,8 +137,6 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     else:
         classFile = className
 
-    outputfile = open(classFile + '.py', 'w')
-
     intopts, parameters, states = inFileStrings
     variables, constants, odefunc, outputs, inputs, linear, outputNames, dependentVarLines = cFileStrings
     #print "intopts:\n", intopts
@@ -155,9 +153,9 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     state_and_initial_lines(states)
 
     # open up the template file
-    template = open('DynamicSystemTemplate.py', 'r')
+    template = open(os.path.join('templates', 'DynamicSystemTemplate.py'), 'r')
 
-    # grab the template file
+    # grab the text from the template file
     data = template.read()
     template.close()
 
@@ -181,13 +179,21 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
 
-
     # write the modified data to file
+    outputfile = open(classFile + '.py', 'w')
     outputfile.write(data)
     outputfile.close()
 
+    # make sure there is an __init__.py file in the directory
+    pathToInit = os.path.join(directory, '__init__.py')
+    try:
+        open(pathToInit)
+    except IOError:
+        open(pathToInit, 'w').close()
+        print('Created {}.'.format(pathToInit))
+
 def first_line(string, numIndents):
-    firstLine = ' '*4*numIndents + string
+    firstLine = ' ' * 4 * numIndents + string
     indent = len(firstLine)
     return firstLine, indent
 
@@ -394,7 +400,7 @@ def alparsein(fileNameBase, code):
     """
 
     print "cwd: ", os.getcwd()
-    fp = open(fileNameBase + ".in", "r")
+    fp = open(fileNameBase + "Dynamics.in", "r")
     for i in range(6):
         fp.next()
 
@@ -508,7 +514,7 @@ def alparsec(fileNameBase, code, linMat, stateNames):
         C++ or Python code
     """
 
-    fp = open(fileNameBase + ".c", "r")
+    fp = open(fileNameBase + "Dynamics.c", "r")
 
     # For the Autolev C files I've examined, there are 20 lines of comments,
     # #include statements, and function forward declarations at the top.  The
@@ -723,7 +729,7 @@ def alparse(fileNameBase, className, code="Text", directory=None,
     if not directory == None:
         fileNameBase = os.path.join(directory, fileNameBase)
 
-    # remove those stupid alTmp files
+    # remove those stupid alTmp files in the directory
     os.system('rm ' + os.path.join(directory, 'alTmp.*'))
 
     inFileStrings = alparsein(fileNameBase, code)
