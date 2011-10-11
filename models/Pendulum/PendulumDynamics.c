@@ -1,5 +1,5 @@
 /* The name of this program is PendulumDynamics.c */
-/* Created by Autolev 4.1 on Tue Apr 19 15:45:41 2011 */
+/* Created by Autolev 4.1 on Tue Oct 11 10:20:08 2011 */
 
 #include <ctype.h> 
 #include <math.h>  

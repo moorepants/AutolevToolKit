@@ -103,7 +103,7 @@ D[4,2] = d(p, force)
 D[5,1] = d(longoutput, force)
 
 % make sure the linear model shows up in the code
-encode A,B,C,D
+encode A, B, C, D
 
 % give it some values for the constants
 input g=9.81 meter/sec^2, l=2.0 meter, m=4.0 kg, i=0.5 kg*meter^2
