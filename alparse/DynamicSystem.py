@@ -78,18 +78,29 @@ class DynamicSystem:
 
         '''
 
-        p = self.parameters
+        # declare the parameters
+        a = self.parameters['a']
+        b = self.parameters['b']
 
-        # calculates inputs
+        # declare the states
+        x1 = x[0]
+        x2 = x[1]
+
+        # calculates and declare the inputs
         u = self.inputs(t)
+        F1 = u[0]
 
-        # sets the zees
+        # calculate the zees
         self.z[0] = 0.
 
         # calculates the derivatives of the states
+        x1p = x2
+        x2p = a * 1. + b * F1
+
+        # store the results in f and return
         f = zeros_like(x)
-        f[0] = x[0]
-        f[1] = p['a'] * 1. + p['b'] * u[0]
+        f[0] = x1p
+        f[1] = x2p
 
         return f
 
