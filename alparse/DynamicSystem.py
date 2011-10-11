@@ -1,4 +1,4 @@
-from numpy import zeros, dot
+from numpy import zeros, zeros_like, dot
 from numpy import linspace, rank
 from numpy.linalg import eig
 from scipy.integrate import odeint
@@ -20,12 +20,15 @@ class DynamicSystem:
     directory = '../models/' + filename + '/'
 
     # numerical integration parameters
-    intOpts = {'ti':0.0,
-               'tf':1.0,
-               'ts':0.1}
+    intOpts = {'ti' : 0.0,
+               'tf' : 1.0,
+               'ts' : 0.1,
+               'abserr' : 1e-8,
+               'relerr' : 1e-07}
 
     # parameter names and their values
-    parameters = {}
+    parameters = {'a' : 1.0,
+                  'b' : 2.0}
 
     # state names
     stateNames = ['x1',
@@ -59,109 +62,73 @@ class DynamicSystem:
 
     def f(self, x, t):
         '''
-        Returns the derivative of the states.
+        Returns the derivative of the states at the specified time.
 
-        Parameters:
-        -----------
-        x : ndarray
-            State vector
-        t : ndarray
-            Time
+        Parameters
+        ----------
+        x : ndarray, shape(n,)
+            The state vector at this time.
+        t : float
+            Time.
 
-        Returns:
-        --------
-        f : ndarray
-            dx/dt
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        f : ndarray, shape(n,)
+            The time derivative of the state vector.
 
         '''
 
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
-
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+        p = self.parameters
 
         # calculates inputs
         u = self.inputs(t)
-        for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'self.u[' + str(i) + ']')
 
         # sets the zees
         self.z[0] = 0.
 
         # calculates the derivatives of the states
-        x1p = x2
-        x2p = 1.
-
-        # plug in the derivatives for returning
-        f = zeros(len(self.stateNames))
-        for i, name in enumerate(self.stateNames):
-            exec('f[' + str(i) + '] = ' + name + 'p')
+        f = zeros_like(x)
+        f[0] = x[0]
+        f[1] = p['a'] * 1. + p['b'] * u[0]
 
         return f
 
     def inputs(self, t):
         '''Returns the inputs to the system.
 
-        Parameters:
-        -----------
-        t : ndarray
-            Time
+        Parameters
+        ----------
+        t : float
+            Time.
 
-        Returns:
-        --------
-        u : ndarray
-            u(t)
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        u : ndarray, shape(m,)
+            The input array as a function of time.
 
         '''
-        u = 1.
+        # initialize the input array
+        u = zeros_like(self.inputNames)
+        # calculate or specifiy the input vector
+        u[0] = 1.
         return u
 
     def outputs(self, x):
         '''
         Returns the outputs of the system.
 
-        Parameters:
-        -----------
-        x : ndarray
-            Current state
+        Parameters
+        ----------
+        x : ndarray, shape(n,)
+            The current state vector.
 
-        Returns:
-        --------
-        y : ndarray
-            y(t)
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        y : ndarray, shape(m,)
+            The output vector.
 
         '''
-        y = zeros(len(self.outputNames))
+        y = zeros_like(self.outputNames)
         y[0] = x[0]
         y[1] = x[1]
 
@@ -171,26 +138,17 @@ class DynamicSystem:
         '''
         Simulates the system.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
 
-        Returns:
-        --------
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
 
         '''
         # time vector
         t = linspace(self.intOpts['ti'],
-                     self.intOpts['tf'],
-                     (self.intOpts['tf']-self.intOpts['ti'])/self.intOpts['ts'])
+                     self.intOpts['tf'] - self.intOpts['ts'],
+                     (self.intOpts['tf'] - self.intOpts['ti']) / self.intOpts['ts'])
 
         print self.stateNames
         print self.outputNames
@@ -198,20 +156,20 @@ class DynamicSystem:
 
         # initialize the vectors
         x = zeros((len(t), len(self.x)))
-        y = zeros((len(t), len(self.y)))
         u = zeros((len(t), len(self.u)))
+        y = zeros((len(t), len(self.y)))
 
         print u.shape
 
         # set the initial conditions
         x[0] = self.initialConditions
-        y[0] = self.outputs(x[0])
         u[0] = self.inputs(t[0])
+        y[0] = self.outputs(x[0])
 
-        for i in range(len(t)-1):
+        for i in range(len(t) - 1):
             print 't =', t[i]
             # set the interval
-            t_int = [t[i], t[i+1]]
+            t_int = [t[i], t[i + 1]]
             #print "self.t before int = ", self.t
             #print "self.u before int = ", self.u
             #print "self.x before int = ", self.x
