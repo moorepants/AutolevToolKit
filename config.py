@@ -1,0 +1,2 @@
+MODELS_DIRECTORY = 'models'
+TEMPLATES_DIRECTORY = 'templates'
