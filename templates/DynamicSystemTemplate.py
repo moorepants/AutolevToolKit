@@ -1,4 +1,5 @@
-from numpy import zeros
+import os
+from numpy import zeros, zeros_like
 from numpy import sin, cos, tan
 from alparse.DynamicSystem import DynamicSystem
 
@@ -12,7 +13,7 @@ class <name>(DynamicSystem):
     name = '<name>'
 
     filename = ''.join(name.split())
-    directory = 'models/' + filename + '/'
+    directory = os.path.join('..', 'models', filename)
 
     # numerical integration parameters
 <intOpts>
@@ -45,7 +46,7 @@ class <name>(DynamicSystem):
 <numZees>
 
     # intialize the time
-    t = 0.0
+    t = intOpts['ti']
 
     def __init__(self):
         '''Just sets the constants.'''
@@ -53,80 +54,46 @@ class <name>(DynamicSystem):
 
     def constants(self):
         '''Sets the zees that are constant.'''
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+<extractParameters>
 
 <constants>
     def f(self, x, t):
         '''Returns the time derivative of the state vector.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         x : ndarray, shape(n,)
-            State vector
+            The state vector at this time.
         t : float
-            Time
+            Time.
 
-        Returns:
-        --------
-        f : ndarray, shape(n,)
-            dx/dt
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        f : ndarray, shape(n,)
+            The time derivative of the state vector.
 
         '''
+<extractParameters>
 
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+<extractConstants>
 
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+<extractStates>
 
-        # calculates inputs
-        u = self.inputs(t)
-        for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'self.u[' + str(i) + ']')
-
-        # equations of motion
 <eom>
-        # plug in the derivatives for returning
-        f = zeros(len(self.stateNames))
-        for i, name in enumerate(self.stateNames):
-            exec('f[' + str(i) + '] = ' + name + 'p')
-
         return f
 
     def inputs(self, t):
         '''Returns the inputs to the system.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         t : float
-            Time
+            Time.
 
-        Returns:
-        --------
-        u : ndarray, shape(p,)
-            Inputs a time t.
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        u : ndarray, shape(m,)
+            The input array as a function of time.
 
         '''
         T = t # this is hack because autolev likes to capitlize everything
@@ -159,22 +126,15 @@ class <name>(DynamicSystem):
         ---------
 
         '''
-        # defines the parameters locally from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+<extractParameters>
 
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+<extractConstants>
 
+<extractStates>
         # these are dependent variables that may be needed for the main
         # calculations
 <dependent>
         # calculate the outputs
 <outputs>
-        # plug in the derivatives for returning
-        y = zeros(len(self.outputNames))
-        for i, name in enumerate(self.outputNames):
-            exec('y[' + str(i) + '] = ' + name)
 
         return y

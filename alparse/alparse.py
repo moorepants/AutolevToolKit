@@ -127,7 +127,7 @@ def writeC(inFileStrings, cFileStrings, className):
         #        "#endif")
     fp_implementation.close()
 
-def writePython(inFileStrings, cFileStrings, className, directory=None):
+def write_python(inFileStrings, cFileStrings, className, directory=None):
     '''Writes a basic Python class definition.
 
     '''
@@ -150,11 +150,8 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     #print "linear:\n", linear
     #print "outputNames:\n", outputNames
 
-    state_and_initial_lines(states)
-
     # open up the template file
     template = open(os.path.join('templates', 'DynamicSystemTemplate.py'), 'r')
-
     # grab the text from the template file
     data = template.read()
     template.close()
@@ -164,20 +161,34 @@ def writePython(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<stateNames>', stateNameLines, data)
     data = re.sub('<initialConditions>', initCondLines, data)
 
-    intOptString = var_declarations_to_dictionary(intopts, 'intOpts', indentation=4)
+    intOptsDict = variable_declarations_to_dictionary(intopts)
+    intOptString = write_dictionary('intOpts', intOptsDict, indentation=4)
     data = re.sub('<intOpts>', intOptString, data)
-    parameterString = var_declarations_to_dictionary(parameters, 'parameters', indentation=4)
+    parDict = variable_declarations_to_dictionary(parameters)
+    parameterString = write_dictionary('parameters', parDict, indentation=4)
     data = re.sub('<parameters>', parameterString, data)
 
     data = re.sub('<name>', className, data)
     data = re.sub('<inputNames>', input_lines(inputs)[0], data)
     data = re.sub('<inputs>', input_lines(inputs)[1], data)
-    data = re.sub('<outputNames>', output_lines(outputNames, outputs)[0], data)
-    data = re.sub('<outputs>', output_lines(outputNames, outputs)[1], data)
+    stateNames, initialConditions = variables_values(states)
+    oNames, oLines = output_lines(outputNames, outputs)
+    data = re.sub('<outputNames>', oNames, data)
+
+    data = re.sub('<outputs>', oLines, data)
     data = re.sub('<numZees>', zee_line(variables), data)
-    data = re.sub('<eom>', eom_lines(odefunc), data)
+    inputNames, blah = variables_values(inputs)
+    data = re.sub('<eom>', eom_lines(parDict, stateNames, inputNames, odefunc), data)
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
+
+    constantNames, blah = variables_values(constants)
+
+    data = re.sub('<extractParameters>',
+            create_extract_parameter_lines(parDict.keys()), data)
+    data = re.sub('<extractConstants>',
+            create_extract_parameter_lines(constantNames), data)
+    data = re.sub('<extractStates>', create_extract_state_lines(stateNames), data)
 
     # write the modified data to file
     outputfile = open(classFile + '.py', 'w')
@@ -298,13 +309,103 @@ def constants_lines(constants):
                                 constantsLines)
     return constantsLines
 
-def eom_lines(odefunc):
-    print "processing the equations of motion"
+def create_extract_parameter_lines(parameterNames, indentSpaces=8):
+    """Returns a string of lines which extract the parameters from the
+    parameter dictionary.
+
+    Parameters
+    ----------
+    parameters : list
+        A list of the model parameters.
+
+    Returns
+    -------
+    parameterLines : string
+        A string of lines that will extract the parameters from the parameter
+        dictionary.
+
+    """
+    indent = ' ' * indentSpaces
+
+    # create the parameter declaration lines
+    parameterLines = indent + '# declare the parameters\n'
+    for k in parameterNames:
+        parameterLines += indent + k + " = self.parameters['" + k + "']\n"
+
+    return parameterLines
+
+def create_extract_state_lines(stateNames, indentSpaces=8):
+    """Returns a string of lines which extract the parameters from the
+    parameter dictionary.
+
+    Parameters
+    ----------
+    stateNames : list
+        A list of the state names.
+
+    Returns
+    -------
+    extractStateLines : string
+        A string of lines that will extract the states from the state array.
+
+    """
+    indent = ' ' * indentSpaces
+
+    # create the state declaration lines
+    extractStateLines = indent + '# declare the states\n'
+    for i, name in enumerate(stateNames):
+        extractStateLines += indent + name + ' = x[' + str(i) + ']\n'
+
+    return extractStateLines
+
+def eom_lines(parameters, stateNames, inputNames, odefunc):
+    """Returns the lines for the equations of motion section of the python
+    file.
+
+    Parameters
+    ----------
+    parameters : dictionary
+        A dictionary of the model parameters.
+    stateNames : list
+        A list of the state names.
+    inputNames : list
+        A list of the input names.
+    odefun : string
+        A string containing the essential equations of motion of the system.
+
+    Returns
+    -------
+    f : string
+        A string containing the equations of motion setup for the function `f`
+        in the DynamicSystem class.
+
+    """
+
+    indent = ' ' * 8
+
+    # create the input declaration lines
+    inputLines = indent + '# calculate and declare the inputs\n'
+    inputLines += indent + 'u = self.inputs(t)\n'
+    for i, name in enumerate(inputNames):
+        inputLines += indent + name + ' = u[' + str(i) + ']\n'
+
+    # create the equation of motion lines
     eom = odefunc.splitlines()
-    eomLines = ''
+    eomLines = indent + '# calculate the derivatives of the states\n'
+    # if there are zee's in the lines substute them with self.z[...]
     for line in eom:
-        eomLines += ' '*8 + re.sub('(z\[\d*\])', r'self.\1', line) + '\n'
-    return eomLines
+        eomLines += indent + self_dot_z(line) + '\n'
+
+    # create the derivatives lines
+    derivativeLines = indent + '# store the results in f and return\n'
+    derivativeLines += indent + 'f = zeros_like(x)\n'
+    for i, name in enumerate(stateNames):
+        derivativeLines += indent + 'f[' + str(i) + '] = ' + name +'p\n'
+
+    f = inputLines + '\n'
+    f += eomLines + '\n' + derivativeLines
+
+    return f
 
 def zee_line(variables):
     print "processing the zee number"
@@ -319,6 +420,9 @@ def zee_line(variables):
 
 def output_lines(outputNames, outputs):
     print "processing the outputs"
+
+    indent = ' ' * 8
+
     outputNameLines, outputNameIndent = first_line('outputNames = [', 1)
     for name in outputNames:
         if name == outputNames[0]:
@@ -329,7 +433,16 @@ def output_lines(outputNames, outputs):
             outputNameLines += outputNameIndent*' ' + "'" + name + "',\n"
     outputLines = ''
     for line in outputs.splitlines():
-        outputLines += self_dot_z(' '*8 + line + '\n')
+        outputLines += self_dot_z(indent + line + '\n')
+
+    # create the output declarations
+    oDecLines = indent + '# store the results in y and return\n'
+    oDecLines += indent + 'y = zeros(len(self.outputNames))\n'
+    for i, name in enumerate(outputNames):
+        oDecLines += indent + 'y[' + str(i) + '] = ' + name + '\n'
+
+    outputLines = outputLines + '\n' + oDecLines
+
     return outputNameLines, outputLines
 
 def input_lines(inputs):
@@ -349,7 +462,31 @@ def input_lines(inputs):
             inputLines += ' '*8 + 'u[' + str(i) + '] = ' + expr + '\n'
     return inputNameLines, inputLines
 
+def variables_values(equationString):
+    """Returns an ordered list of both the variable names and the values.
+
+    """
+    equationLines = equationString.splitlines()
+    variableList = []
+    valueList = []
+    for line in equationLines:
+        var, val = line.split('=')
+        if var.startswith('z'):
+            pass
+        else:
+            variableList.append(var.strip())
+            try:
+                valueList.append(float(val.strip()))
+            except ValueError:
+                valueList.append(val.strip())
+
+
+    return variableList, valueList
+
 def state_and_initial_lines(states):
+    """Returns the
+
+    """
     states = states.splitlines()
     stateNameList = []
     initCondList = []
@@ -362,34 +499,27 @@ def state_and_initial_lines(states):
     initLines = write_list('initialConditions', initCondList, indentation=4)
     return stateLines, initLines
 
-def var_declarations_to_dictionary(mulLineEqs, varName, indentation=0, oneLine=False):
-    '''Write a multiline string of simple variable declarations as a dictionary
-    definiton for a Python file.
+def variable_declarations_to_dictionary(equationString):
+    '''Write a multiline string of simple variable declarations as a
+    dictionary.
 
     Parameters
     ----------
-    mulLineEqs : string
+    equationString : string
         This string should be in the form "a = 2.0\nb = 3.0\n"
-    varName : string
-        The name of the variable in the generated string.
-    indentation : int
-        Number of spaces of indentation for the entire string.
-    oneLine : boolean
-        Put the dictionary declaration all on one line.
 
     Returns
     -------
-    varDecDict : dictionary
+    equationDict : dictionary
 
     '''
-    eqs = mulLineEqs.splitlines()
-    eqDict = {}
-    for eq in eqs:
-        key, val = eq.split(' = ')
-        eqDict[key] = float(val)
-    return write_dictionary(varName, eqDict,
-                            indentation=indentation,
-                            oneLine=oneLine)
+    equationList = equationString.splitlines()
+    equationDict = {}
+    for line in equationList:
+        key, val = line.split('=')
+        equationDict[key.strip()] = float(val.strip())
+
+    return equationDict
 
 def writeCxx(inFileStrings, cFileStrings, className):
     raise Exception
@@ -742,7 +872,7 @@ def alparse(fileNameBase, className, code="Text", directory=None,
     elif code == "C":
         writeC(inFileStrings, cFileStrings, className)
     elif code == "Python":
-        writePython(inFileStrings, cFileStrings, className, directory=directory)
+        write_python(inFileStrings, cFileStrings, className, directory=directory)
     elif code == "C++":
         writeC++(inFileStrings, cFileStrings, className)
 

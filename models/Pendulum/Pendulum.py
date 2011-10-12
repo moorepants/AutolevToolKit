@@ -1,4 +1,5 @@
-from numpy import zeros
+import os
+from numpy import zeros, zeros_like
 from numpy import sin, cos, tan
 from alparse.DynamicSystem import DynamicSystem
 
@@ -12,7 +13,7 @@ class Pendulum(DynamicSystem):
     name = 'Pendulum'
 
     filename = ''.join(name.split())
-    directory = 'models/' + filename + '/'
+    directory = os.path.join('..', 'models', filename)
 
     # numerical integration parameters
     intOpts = {'abserr' : 1e-08,
@@ -59,7 +60,7 @@ class Pendulum(DynamicSystem):
     z = zeros(18)
 
     # intialize the time
-    t = 0.0
+    t = intOpts['ti']
 
     def __init__(self):
         '''Just sets the constants.'''
@@ -67,9 +68,12 @@ class Pendulum(DynamicSystem):
 
     def constants(self):
         '''Sets the zees that are constant.'''
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+        # declare the parameters
+        i = self.parameters['i']
+        m = self.parameters['m']
+        l = self.parameters['l']
+        g = self.parameters['g']
+
 
         self.z[8] = g*m
         self.z[15] = g*l*m
@@ -77,43 +81,40 @@ class Pendulum(DynamicSystem):
     def f(self, x, t):
         '''Returns the time derivative of the state vector.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         x : ndarray, shape(n,)
-            State vector
+            The state vector at this time.
         t : float
-            Time
+            Time.
 
-        Returns:
-        --------
-        f : ndarray, shape(n,)
-            dx/dt
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        f : ndarray, shape(n,)
+            The time derivative of the state vector.
 
         '''
+        # declare the parameters
+        i = self.parameters['i']
+        m = self.parameters['m']
+        l = self.parameters['l']
+        g = self.parameters['g']
 
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
 
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+        # declare the parameters
 
-        # calculates inputs
+
+        # declare the states
+        omega = x[0]
+        theta = x[1]
+
+
+        # calculate and declare the inputs
         u = self.inputs(t)
-        for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'self.u[' + str(i) + ']')
+        torque = u[0]
+        force = u[1]
 
-        # equations of motion
+        # calculate the derivatives of the states
         thetap = omega
         self.z[1] = cos(theta)
         self.z[2] = sin(theta)
@@ -125,34 +126,25 @@ class Pendulum(DynamicSystem):
         self.z[12] = self.z[9]/self.z[11]
         omegap = self.z[12]
 
-        # plug in the derivatives for returning
-        f = zeros(len(self.stateNames))
-        for i, name in enumerate(self.stateNames):
-            exec('f[' + str(i) + '] = ' + name + 'p')
+        # store the results in f and return
+        f = zeros_like(x)
+        f[0] = omegap
+        f[1] = thetap
 
         return f
 
     def inputs(self, t):
         '''Returns the inputs to the system.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         t : float
-            Time
+            Time.
 
-        Returns:
-        --------
-        u : ndarray, shape(p,)
-            Inputs a time t.
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        u : ndarray, shape(m,)
+            The input array as a function of time.
 
         '''
         T = t # this is hack because autolev likes to capitlize everything
@@ -186,13 +178,19 @@ class Pendulum(DynamicSystem):
         ---------
 
         '''
-        # defines the parameters locally from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+        # declare the parameters
+        i = self.parameters['i']
+        m = self.parameters['m']
+        l = self.parameters['l']
+        g = self.parameters['g']
 
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+
+        # declare the parameters
+
+
+        # declare the states
+        omega = x[0]
+        theta = x[1]
 
         # these are dependent variables that may be needed for the main
         # calculations
@@ -202,9 +200,13 @@ class Pendulum(DynamicSystem):
         p = -0.5*g*l*m*self.z[1]
         longoutput = 2 + 2*theta + p + self.z[1] + omega + 0.125*(m*pow(self.z[4],2)+4*i*pow(self.z[3],2))*pow(omega,2)
 
-        # plug in the derivatives for returning
+        # store the results in y and return
         y = zeros(len(self.outputNames))
-        for i, name in enumerate(self.outputNames):
-            exec('y[' + str(i) + '] = ' + name)
+        y[0] = omega
+        y[1] = theta
+        y[2] = k
+        y[3] = p
+        y[4] = longoutput
+
 
         return y

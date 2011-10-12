@@ -17,7 +17,7 @@ class DynamicSystem:
     name = 'DynamicSystem'
 
     filename = ''.join(name.split())
-    directory = '../models/' + filename + '/'
+    directory = os.path.join('..', 'models', filename)
 
     # numerical integration parameters
     intOpts = {'ti' : 0.0,
@@ -119,7 +119,7 @@ class DynamicSystem:
 
         '''
         # initialize the input array
-        u = zeros_like(self.inputNames)
+        u = zeros(len(self.inputNames))
         # calculate or specifiy the input vector
         u[0] = 1.
         return u
@@ -139,7 +139,7 @@ class DynamicSystem:
             The output vector.
 
         '''
-        y = zeros_like(self.outputNames)
+        y = zeros(len(self.outputNames))
         y[0] = x[0]
         y[1] = x[1]
 
@@ -170,8 +170,6 @@ class DynamicSystem:
         u = zeros((len(t), len(self.u)))
         y = zeros((len(t), len(self.y)))
 
-        print u.shape
-
         # set the initial conditions
         x[0] = self.initialConditions
         u[0] = self.inputs(t[0])
@@ -188,14 +186,15 @@ class DynamicSystem:
             #print "self.y before int = ", self.y
             # return the next state
             x[i + 1] = odeint(self.f, x[i], t_int)[1, :]
+            # calculate the next input value
+            u[i + 1] = self.inputs(t[i + 1])
             # calculate the outputs and store them
             y[i + 1] = self.outputs(x[i + 1])
-            u[i + 1] = self.inputs(t[i + 1])
             # update all the attributes
             self.t = t[i + 1]
             self.x = x[i + 1]
-            self.y = y[i + 1]
             self.u = u[i + 1]
+            self.y = y[i + 1]
             #print "self.t after int = ", self.t
             #print "self.u after int = ", self.u
             #print "self.x after int = ", self.x

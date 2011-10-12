@@ -1,4 +1,5 @@
-from numpy import zeros
+import os
+from numpy import zeros, zeros_like
 from numpy import sin, cos, tan
 from alparse.DynamicSystem import DynamicSystem
 
@@ -12,7 +13,7 @@ class Whipple(DynamicSystem):
     name = 'Whipple'
 
     filename = ''.join(name.split())
-    directory = 'models/' + filename + '/'
+    directory = os.path.join('..', 'models', filename)
 
     # numerical integration parameters
     intOpts = {'abserr' : 1e-08,
@@ -111,7 +112,7 @@ class Whipple(DynamicSystem):
     z = zeros(4150)
 
     # intialize the time
-    t = 0.0
+    t = intOpts['ti']
 
     def __init__(self):
         '''Just sets the constants.'''
@@ -119,9 +120,34 @@ class Whipple(DynamicSystem):
 
     def constants(self):
         '''Sets the zees that are constant.'''
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+        # declare the parameters
+        rR = self.parameters['rR']
+        rF = self.parameters['rF']
+        IRxx = self.parameters['IRxx']
+        xH = self.parameters['xH']
+        zH = self.parameters['zH']
+        IBxx = self.parameters['IBxx']
+        IBxz = self.parameters['IBxz']
+        xB = self.parameters['xB']
+        IBzz = self.parameters['IBzz']
+        zB = self.parameters['zB']
+        IFxx = self.parameters['IFxx']
+        IHyy = self.parameters['IHyy']
+        lam = self.parameters['lam']
+        mF = self.parameters['mF']
+        mB = self.parameters['mB']
+        IFyy = self.parameters['IFyy']
+        mH = self.parameters['mH']
+        mR = self.parameters['mR']
+        IRyy = self.parameters['IRyy']
+        c = self.parameters['c']
+        g = self.parameters['g']
+        IByy = self.parameters['IByy']
+        w = self.parameters['w']
+        IHzz = self.parameters['IHzz']
+        IHxz = self.parameters['IHxz']
+        IHxx = self.parameters['IHxx']
+
 
         self.parameters['d1'] = cos(lam)*(c+w-rR*tan(lam))
         self.parameters['d3'] = -cos(lam)*(c-rF*tan(lam))
@@ -162,43 +188,101 @@ class Whipple(DynamicSystem):
     def f(self, x, t):
         '''Returns the time derivative of the state vector.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         x : ndarray, shape(n,)
-            State vector
+            The state vector at this time.
         t : float
-            Time
+            Time.
 
-        Returns:
-        --------
-        f : ndarray, shape(n,)
-            dx/dt
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        f : ndarray, shape(n,)
+            The time derivative of the state vector.
 
         '''
+        # declare the parameters
+        rR = self.parameters['rR']
+        rF = self.parameters['rF']
+        IRxx = self.parameters['IRxx']
+        xH = self.parameters['xH']
+        zH = self.parameters['zH']
+        IBxx = self.parameters['IBxx']
+        IBxz = self.parameters['IBxz']
+        xB = self.parameters['xB']
+        IBzz = self.parameters['IBzz']
+        zB = self.parameters['zB']
+        IFxx = self.parameters['IFxx']
+        IHyy = self.parameters['IHyy']
+        lam = self.parameters['lam']
+        mF = self.parameters['mF']
+        mB = self.parameters['mB']
+        IFyy = self.parameters['IFyy']
+        mH = self.parameters['mH']
+        mR = self.parameters['mR']
+        IRyy = self.parameters['IRyy']
+        c = self.parameters['c']
+        g = self.parameters['g']
+        IByy = self.parameters['IByy']
+        w = self.parameters['w']
+        IHzz = self.parameters['IHzz']
+        IHxz = self.parameters['IHxz']
+        IHxx = self.parameters['IHxx']
 
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
 
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+        # declare the parameters
+        d1 = self.parameters['d1']
+        d3 = self.parameters['d3']
+        d2 = self.parameters['d2']
+        id11 = self.parameters['id11']
+        id22 = self.parameters['id22']
+        id33 = self.parameters['id33']
+        ic11 = self.parameters['ic11']
+        ic12 = self.parameters['ic12']
+        ic22 = self.parameters['ic22']
+        ic23 = self.parameters['ic23']
+        ic31 = self.parameters['ic31']
+        ic33 = self.parameters['ic33']
+        ie11 = self.parameters['ie11']
+        ie12 = self.parameters['ie12']
+        ie22 = self.parameters['ie22']
+        ie23 = self.parameters['ie23']
+        ie31 = self.parameters['ie31']
+        ie33 = self.parameters['ie33']
+        if11 = self.parameters['if11']
+        if22 = self.parameters['if22']
+        if33 = self.parameters['if33']
+        l1 = self.parameters['l1']
+        l2 = self.parameters['l2']
+        l3 = self.parameters['l3']
+        l4 = self.parameters['l4']
+        massc = self.parameters['massc']
+        massd = self.parameters['massd']
+        masse = self.parameters['masse']
+        massf = self.parameters['massf']
 
-        # calculates inputs
+
+        # declare the states
+        q1 = x[0]
+        q2 = x[1]
+        q3 = x[2]
+        q4 = x[3]
+        q5 = x[4]
+        q6 = x[5]
+        q7 = x[6]
+        q8 = x[7]
+        u4 = x[8]
+        u6 = x[9]
+        u7 = x[10]
+
+
+        # calculate and declare the inputs
         u = self.inputs(t)
-        for i, name in enumerate(self.inputNames):
-            exec(name + ' = ' + 'self.u[' + str(i) + ']')
+        Tdelta = u[0]
+        Tphi = u[1]
+        TthetaR = u[2]
 
-        # equations of motion
+        # calculate the derivatives of the states
         self.z[3] = cos(q4)
         self.z[2] = sin(q3)
         self.z[4] = sin(q4)
@@ -983,34 +1067,34 @@ class Whipple(DynamicSystem):
         self.z[810] = (self.z[798]*self.z[797]+self.z[804]*self.z[795]-self.z[807]*self.z[796])/self.z[801]
         u7p = self.z[810]
 
-        # plug in the derivatives for returning
-        f = zeros(len(self.stateNames))
-        for i, name in enumerate(self.stateNames):
-            exec('f[' + str(i) + '] = ' + name + 'p')
+        # store the results in f and return
+        f = zeros_like(x)
+        f[0] = q1p
+        f[1] = q2p
+        f[2] = q3p
+        f[3] = q4p
+        f[4] = q5p
+        f[5] = q6p
+        f[6] = q7p
+        f[7] = q8p
+        f[8] = u4p
+        f[9] = u6p
+        f[10] = u7p
 
         return f
 
     def inputs(self, t):
         '''Returns the inputs to the system.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         t : float
-            Time
+            Time.
 
-        Returns:
-        --------
-        u : ndarray, shape(p,)
-            Inputs a time t.
-
-        Raises:
+        Returns
         -------
-
-        See also:
-        ---------
-
-        Examples:
-        ---------
+        u : ndarray, shape(m,)
+            The input array as a function of time.
 
         '''
         T = t # this is hack because autolev likes to capitlize everything
@@ -1045,13 +1129,79 @@ class Whipple(DynamicSystem):
         ---------
 
         '''
-        # defines the parameters locally from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
+        # declare the parameters
+        rR = self.parameters['rR']
+        rF = self.parameters['rF']
+        IRxx = self.parameters['IRxx']
+        xH = self.parameters['xH']
+        zH = self.parameters['zH']
+        IBxx = self.parameters['IBxx']
+        IBxz = self.parameters['IBxz']
+        xB = self.parameters['xB']
+        IBzz = self.parameters['IBzz']
+        zB = self.parameters['zB']
+        IFxx = self.parameters['IFxx']
+        IHyy = self.parameters['IHyy']
+        lam = self.parameters['lam']
+        mF = self.parameters['mF']
+        mB = self.parameters['mB']
+        IFyy = self.parameters['IFyy']
+        mH = self.parameters['mH']
+        mR = self.parameters['mR']
+        IRyy = self.parameters['IRyy']
+        c = self.parameters['c']
+        g = self.parameters['g']
+        IByy = self.parameters['IByy']
+        w = self.parameters['w']
+        IHzz = self.parameters['IHzz']
+        IHxz = self.parameters['IHxz']
+        IHxx = self.parameters['IHxx']
 
-        # sets the current state
-        for i, name in enumerate(self.stateNames):
-            exec(name + ' = ' + 'x[' + str(i) + ']')
+
+        # declare the parameters
+        d1 = self.parameters['d1']
+        d3 = self.parameters['d3']
+        d2 = self.parameters['d2']
+        id11 = self.parameters['id11']
+        id22 = self.parameters['id22']
+        id33 = self.parameters['id33']
+        ic11 = self.parameters['ic11']
+        ic12 = self.parameters['ic12']
+        ic22 = self.parameters['ic22']
+        ic23 = self.parameters['ic23']
+        ic31 = self.parameters['ic31']
+        ic33 = self.parameters['ic33']
+        ie11 = self.parameters['ie11']
+        ie12 = self.parameters['ie12']
+        ie22 = self.parameters['ie22']
+        ie23 = self.parameters['ie23']
+        ie31 = self.parameters['ie31']
+        ie33 = self.parameters['ie33']
+        if11 = self.parameters['if11']
+        if22 = self.parameters['if22']
+        if33 = self.parameters['if33']
+        l1 = self.parameters['l1']
+        l2 = self.parameters['l2']
+        l3 = self.parameters['l3']
+        l4 = self.parameters['l4']
+        massc = self.parameters['massc']
+        massd = self.parameters['massd']
+        masse = self.parameters['masse']
+        massf = self.parameters['massf']
+
+
+        # declare the states
+        q1 = x[0]
+        q2 = x[1]
+        q3 = x[2]
+        q4 = x[3]
+        q5 = x[4]
+        q6 = x[5]
+        q7 = x[6]
+        q8 = x[7]
+        u4 = x[8]
+        u6 = x[9]
+        u7 = x[10]
 
         # these are dependent variables that may be needed for the main
         # calculations
@@ -1063,9 +1213,24 @@ class Whipple(DynamicSystem):
 
         # calculate the outputs
 
-        # plug in the derivatives for returning
+        # store the results in y and return
         y = zeros(len(self.outputNames))
-        for i, name in enumerate(self.outputNames):
-            exec('y[' + str(i) + '] = ' + name)
+        y[0] = q1
+        y[1] = q2
+        y[2] = q3
+        y[3] = q4
+        y[4] = q5
+        y[5] = q6
+        y[6] = q7
+        y[7] = q8
+        y[8] = u1
+        y[9] = u2
+        y[10] = u3
+        y[11] = u4
+        y[12] = u5
+        y[13] = u6
+        y[14] = u7
+        y[15] = u8
+
 
         return y
