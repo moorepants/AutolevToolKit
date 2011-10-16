@@ -156,6 +156,9 @@ class DynamicSystem:
         -------
 
         '''
+        # make sure the constants are updated
+        self.constants()
+
         # time vector
         t = linspace(self.intOpts['ti'],
                      self.intOpts['tf'] - self.intOpts['ts'],
