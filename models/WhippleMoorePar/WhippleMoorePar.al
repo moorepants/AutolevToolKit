@@ -724,7 +724,7 @@ output u1 m/s, u2 m/s, u3 rad/s, u4 rad/s, u5 rad/s, u6 rad/s, u7 rad/s, u8 rad/
 
 code dynamics() WhippleMooreParDynamics.m
 
-encode aMat,bMat,cMat,dMat
+encode aMat, bMat, cMat, dMat
 
 code dynamics() WhippleMooreParDynamics.c
 code algebraic() WhippleMooreParAlgebraic.m
