@@ -221,10 +221,11 @@ alf_f_n>=dt(w_f_n>,n)
 %         accelerations
 %---------------------------------------------------------------------%
 
-a_co_n>=dt(v_co_n>,n)
-a_do_n>=dt(v_do_n>,n)
-a_eo_n>=dt(v_eo_n>,n)
-a_fo_n>=dt(v_fo_n>,n)
+a_do_n> = dt(v_do_n>, n)
+a2pts(n, c, do, co)
+a2pts(n, c, do, ce)
+a2pts(n, e, ce, fo)
+a2pts(n, e, fo, eo)
 
 %---------------------------------------------------------------------%
 %         forces and torques
