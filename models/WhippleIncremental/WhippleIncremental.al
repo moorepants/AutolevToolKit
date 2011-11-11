@@ -173,10 +173,11 @@ angvel(n,f)
 %         velocities
 %---------------------------------------------------------------------%
 
-v_co_n>=dt(p_no_co>,n)
-v_do_n>=dt(p_no_do>,n)
-v_eo_n>=dt(p_no_eo>,n)
-v_fo_n>=dt(p_no_fo>,n)
+v_do_n> = dt(p_no_do>, n)
+v2pts(n, c, do, co)
+v2pts(n, c, do, ce)
+v2pts(n, e, ce, fo)
+v2pts(n, e, fo, eo)
 
 v2pts(n,d,do,dn)
 v2pts(n,f,fo,fn)
