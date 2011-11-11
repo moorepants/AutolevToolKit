@@ -40,7 +40,7 @@ bodies c, d, e, f
 % dn: rear contact point
 % fn: front contact point
 
-points nd, dn, nf, fn
+points dn, fn
 
 % declare a point on the steer axis
 points ce
@@ -161,13 +161,13 @@ p_do_co> = l1 * c1> + l2 * c3>
 p_do_ce> = d1 * c1>
 
 % steer axis point to the front wheel center
-p_ce_fo> = d2 * e3> + d3 * e1>
+p_ce_fo> = d2 * c3> + d3 * e1>
 
 % front wheel center to fork/handlebar center
 p_fo_eo> = l3 * e1> + l4 * e3>
 
 % locate the ground contact points
-p_do_dn> = rr * b3>
+p_do_dn> = rR * b3>
 p_fo_fn> = rF * cross(cross(e2>, a3>), e2>)
 
 %---------------------------------------------------------------------%
@@ -216,33 +216,6 @@ v2pts(n, d, do, dn)
 v2pts(n, f, fo, fn)
 
 %---------------------------------------------------------------------%
-%         angular accelerations
-%---------------------------------------------------------------------%
-
-alf_c_n> = dt(w_c_n>, n)
-alf_d_n> = dt(w_d_n>, n)
-alf_e_n> = dt(w_e_n>, n)
-alf_f_n> = dt(w_f_n>, n)
-
-%---------------------------------------------------------------------%
-%         accelerations
-%---------------------------------------------------------------------%
-a_do_n>=dt(v_do_n>, n)
-a2pts(n, c, do, co)
-a2pts(n, c, do, ce)
-a2pts(n, e, ce, fo)
-a2pts(n, e, fo, eo)
-
-%---------------------------------------------------------------------%
-%         forces and torques
-%---------------------------------------------------------------------%
-
-gravity(g * n3>, c, d, e, f)
-torque(n/c, T4 * a1>) % roll torque
-torque(c/d, T6 * c2>) % rear wheel torque
-torque(c/e, T7 * c3>) % steer torque
-
-%---------------------------------------------------------------------%
 %         motion constraints
 %---------------------------------------------------------------------%
 
@@ -263,6 +236,34 @@ dependent[5] = dt(pzero)
 % are taken to be the independent generalized speeds
 
 constrain(dependent[u1, u2, u3, u5, u8])
+
+%---------------------------------------------------------------------%
+%         angular accelerations
+%---------------------------------------------------------------------%
+
+alf_c_n> = dt(w_c_n>, n)
+alf_d_n> = dt(w_d_n>, n)
+alf_e_n> = dt(w_e_n>, n)
+alf_f_n> = dt(w_f_n>, n)
+
+%---------------------------------------------------------------------%
+%         accelerations
+%---------------------------------------------------------------------%
+
+a_do_n> = dt(v_do_n>, n)
+a2pts(n, c, do, co)
+a2pts(n, c, do, ce)
+a2pts(n, e, ce, fo)
+a2pts(n, e, fo, eo)
+
+%---------------------------------------------------------------------%
+%         forces and torques
+%---------------------------------------------------------------------%
+
+gravity(g * n3>, c, d, e, f)
+torque(n/c, T4 * a1>) % roll torque
+torque(c/d, T6 * c2>) % rear wheel torque
+torque(c/e, T7 * c3>) % steer torque
 
 %---------------------------------------------------------------------%
 %         equations of motion
@@ -415,48 +416,48 @@ aMat[11, 10] = d(u7', u6)
 aMat[11, 11] = d(u7', u7)
 
 bMat[1, 1] = d(q1', T4)
-bmat[1, 2] = d(q1', T6)
-bmat[1, 3] = d(q1', T7)
+bMat[1, 2] = d(q1', T6)
+bMat[1, 3] = d(q1', T7)
 
 bMat[2, 1] = d(q2', T4)
 bMat[2, 2] = d(q2', T6)
-bmat[2, 3] = d(q2', T7)
+bMat[2, 3] = d(q2', T7)
 
 bMat[3, 1] = d(q3', T4)
 bMat[3, 2] = d(q3', T6)
-bmat[3, 3] = d(q3', T7)
+bMat[3, 3] = d(q3', T7)
 
 bMat[4, 1] = d(q4', T4)
 bMat[4, 2] = d(q4', T6)
-bmat[4, 3] = d(q4', T7)
+bMat[4, 3] = d(q4', T7)
 
 bMat[5, 1] = d(q5', T4)
 bMat[5, 2] = d(q5', T6)
-bmat[5, 3] = d(q5', T7)
+bMat[5, 3] = d(q5', T7)
 
 bMat[6, 1] = d(q6', T4)
 bMat[6, 2] = d(q6', T6)
-bmat[6, 3] = d(q6', T7)
+bMat[6, 3] = d(q6', T7)
 
 bMat[7, 1] = d(q7', T4)
 bMat[7, 2] = d(q7', T6)
-bmat[7, 3] = d(q7', T7)
+bMat[7, 3] = d(q7', T7)
 
 bMat[8, 1] = d(q8', T4)
 bMat[8, 2] = d(q8', T6)
-bmat[8, 3] = d(q8', T7)
+bMat[8, 3] = d(q8', T7)
 
 bMat[9, 1] = d(u4', T4)
 bMat[9, 2] = d(u4', T6)
-bmat[9, 3] = d(u4', T7)
+bMat[9, 3] = d(u4', T7)
 
 bMat[10, 1] = d(u6', T4)
 bMat[10, 2] = d(u6', T6)
-bmat[10, 3] = d(u6', T7)
+bMat[10, 3] = d(u6', T7)
 
 bMat[11, 1] = d(u7', T4)
 bMat[11, 2] = d(u7', T6)
-bmat[11, 3] = d(u7', T7)
+bMat[11, 3] = d(u7', T7)
 
 cMat[1, 1] = d(q1, q1)
 cMat[1, 2] = d(q1, q2)
