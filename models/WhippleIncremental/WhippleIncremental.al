@@ -1,6 +1,6 @@
 %---------------------------------------------------------------------%
 % File: WhippleIncremental.al
-% Creation Date: April 23, 2011
+% Creation Date: November 11, 2011
 % Author: Jason Moore
 % Description: Generates the nonlinear and linear equations of motion for the
 % Whipple bicycle model with three inputs.
@@ -46,108 +46,30 @@ points nd,dn,nf,fn
 %---------------------------------------------------------------------%
 %         constants and variables
 %---------------------------------------------------------------------%
-% define the benchmark parameters from Meijaard et. al, 2007
 
-% w:        wheelbase                          [m]
-% c:        trail                              [m]
-% lam:      steer axis tilt                    [rad]
-% g:        gravity                            [n/kg]
-% v:        forward speed                      [m/s]
-% rR:       rear wheel radius                  [m]
-% mR:       rear wheel mass                    [kg]
-% IRxx:     rear wheel mass moment of inertia  [kg*m^2]
-% IRyy:     rear wheel mass moment of inertia  [kg*m^2]
-% xB:       rear body center of mass location  [m]
-% zB:       rear body center of mass location  [m]
-% mB:       rear body mass                     [kg]
-% IBxx:     rear body mass moment of inertia   [kg*m^2]
-% IByy:     rear body mass moment of inertia   [kg*m^2]
-% IBzz:     rear body mass moment of inertia   [kg*m^2]
-% IBxz:     rear body mass moment of inertia   [kg*m^2]
-% xH:       fork center of mass location       [m]
-% zH:       fork center of mass location       [m]
-% mH:       fork mass                          [kg]
-% IHxx:     fork mass moment of inertia        [kg*m^2]
-% IHyy:     fork mass moment of inertia        [kg*m^2]
-% IHzz:     fork mass moment of inertia        [kg*m^2]
-% IHxz:     fork mass moment of inertia        [kg*m^2]
-% rF:       front wheel radius                 [m]
-% mF:       front wheel mass                   [kg]
-% IFxx:     front wheel mass moment of inertia [kg*m^2]
-% IFyy:     front wheel mass moment of inertia [kg*m^2]
-% Tphi:     roll torque                        [n*m]
-% Tdelta:   steer torque                       [n*m]
-% TthetaR:  rear wheel torque                  [n*m]
+constants rF, rR, d{1:3}, l{1:4}
 
-constants w,c,lam,g,v
-constants rR,mR,IRxx,IRyy
-constants xB,zB,mB,IBxx,IByy,IBzz,IBxz
-constants xH,zH,mH,IHxx,IHyy,IHzz,IHxz
-constants rF,mF,IFxx,IFyy
-specified Tphi,Tdelta,TthetaR
+% gravity
 
-% convert the benchmark constants to this model's constants
-% rF: radius of front wheel
-% rR: radius of rear wheel
-% d1: the perpendicular distance from the head tube axis to the center
-%     of the rear wheel
-% d3: the perpendicular distance from the head tube axis to the center
-%     of the front wheel (fork offset)
-% l1: the distance in the d1> direction from the center of the rear
-%     wheel to the frame center of mass
-% l2: the distance in the d3> direction from the center of the rear
-%     wheel to the frame center of mass
-% l3: the distance in the f1> direction from the steer point to the
-%     center of mass of the fork
-% l4: the distance in the f3> direction from the steer point to the
-%     center of mass of the fork
+constants g
 
-d1    =  cos(lam)*(c+w-rR*tan(lam))
-d3    = -cos(lam)*(c-rF*tan(lam))
-d2    = (rR+d1*sin(lam)-rF+d3*sin(lam))/cos(lam)
-% rear wheel inertia
-id11  =  IRxx
-id22  =  IRyy
-id33  =  IRxx
-cf    =  [cos(lam),0,-sin(lam);0,1,0;sin(lam),0,cos(lam)]
-% rotate bicycle frame inertia through lam
-IB    =  [IBxx,0,IBxz;0,IByy,0;IBxz,0,IBzz]
-IBrot =  cf*IB*transpose(cf)
-% bicycle frame inertia
-ic11  =  IBrot[1,1]
-ic12  =  IBrot[1,2]
-ic22  =  IBrot[2,2]
-ic23  =  IBrot[2,3]
-ic31  =  IBrot[3,1]
-ic33  =  IBrot[3,3]
-% rotate fork inertia matrix through lam
-IH    =  [IHxx,0,IHxz;0,IHyy,0;IHxz,0,IHzz]
-IHrot =  cf*IH*transpose(cf)
-% fork/handlebar inertia
-ie11  =  IHrot[1,1]
-ie12  =  IHrot[1,2]
-ie22  =  IHrot[2,2]
-ie23  =  IHrot[2,3]
-ie31  =  IHrot[3,1]
-ie33  =  IHrot[3,3]
-% front wheel inertia
-if11  =  IFxx
-if22  =  IFyy
-if33  =  IFxx
-% mass center locations
-l1    =  xB*cos(lam)-zB*sin(lam)-rR*sin(lam)
-l2    =  xB*sin(lam)+zB*cos(lam)+rR*cos(lam)
-l3    =  cos(lam)*xH-sin(lam)*zH-c*cos(lam)-w*cos(lam)
-l4    =  rR*cos(lam)+xH*sin(lam)+zH*cos(lam)
 % masses
-massc    =  mB
-massd    =  mR
-masse    =  mH
-massf    =  mF
+
+constants mc, md, me, mf
+
+% inertia
+
+constants ic11, ic22, ic33, ic31
+constants id11, id22
+constants ie11, ie22, ie33, ie31
+constants if11, if22
+
 % input torques
-T4    =  Tphi
-T6    =  TthetaR
-T7    =  Tdelta
+% T4: roll torque
+% T6: rear wheel torque
+% T7: steer torque
+
+specified T4, T6, T7
 
 %---------------------------------------------------------------------%
 % declare the generalized coordinates
@@ -176,7 +98,7 @@ motionvariables' u{8}'
 %         mass and inertia properties
 %---------------------------------------------------------------------%
 
-mass c=massc,d=massd,e=masse,f=massf
+mass c=mc,d=md,e=me,f=mf
 inertia c,ic11,ic22,ic33,ic12,ic23,ic31
 inertia d,id11,id22,id33
 inertia e,ie11,ie22,ie33,ie12,ie23,ie31
@@ -728,15 +650,6 @@ dMat[16,2]=d(u8,T7)
 
 
 unitsystem kg, meter, sec
-
-input w=1.02 m,c=0.08 m,lam=3.141592653589793/10 rad,g=9.81 kg
-input rR=0.3 m,mR=2 kg,IRxx=0.0603 kg*m^2,IRyy=0.12 kg*m^2
-input xB=0.3 m,zB=-0.9 m,mB=85 kg
-input IBxx=9.2 kg*m^2,IByy=11 kg*m^2,IBzz=2.8 kg*m^2,IBxz=2.4 kg*m^2
-input xH=0.9 m,zH=-0.7 m,mH=4 kg
-input IHxx=0.05892 kg*m^2,IHyy=0.06 kg*m^2,IHzz=0.00708 kg*m^2
-input IHxz=-0.00756 kg*m^2
-input rF=0.35 m,mF=3 kg,IFxx=0.1405 kg*m^2,IFyy=0.28 kg*m^2
 
 input q1=0.0 m, q2=0.0 m, q3=0.0 rad, q4=0.0 rad, q5=0.0 rad, q6=0.0 rad, q7=0.0 rad, q8=0.0 rad
 input u4=0.0 rad/s, u6=0.0 rad/s, u7=0.0 rad/s
