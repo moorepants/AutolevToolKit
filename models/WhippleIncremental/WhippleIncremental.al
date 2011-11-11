@@ -141,7 +141,7 @@ p_fo_eo>=l3*e1>+l4*e3> % rear wheel center to fork/handlebar center
 
 % locate the ground contact points
 p_do_dn>=rr*b3>
-p_fo_fn>=rF*unitvec(n3>-dot(e2>,n3>)*e2>)
+p_fo_fn> = rF * cross(cross(e2>, a3>), e2>)
 
 %---------------------------------------------------------------------%
 %         define the kinematical differential equations
