@@ -1,5 +1,5 @@
 %---------------------------------------------------------------------%
-% File: Whipple.al
+% File: WhippleIncremental.al
 % Creation Date: April 23, 2011
 % Author: Jason Moore
 % Description: Generates the nonlinear and linear equations of motion for the
@@ -193,7 +193,7 @@ simprot(n,a,3,q3)
 simprot(a,b,1,q4)
 
 % frame pitch
-simprot(b,c,2,q5+lam)
+simprot(b,c,2,q5)
 
 % rear wheel rotation
 simprot(c,d,2,q6)
@@ -744,17 +744,17 @@ input u4=0.0 rad/s, u6=0.0 rad/s, u7=0.0 rad/s
 output q1 m, q2 m, q3 rad, q4 rad, q5 rad, q6 rad, q7 rad, q8 rad
 output u1 m/s, u2 m/s, u3 rad/s, u4 rad/s, u5 rad/s, u6 rad/s, u7 rad/s, u8 rad/s
 
-code dynamics() WhippleDynamics.m
+code dynamics() WhippleIncrementalDynamics.m
 
 encode aMat,bMat,cMat,dMat
 
-code dynamics() WhippleDynamics.c
-code algebraic() WhippleAlgebraic.m
+code dynamics() WhippleIncrementalDynamics.c
+code algebraic() WhippleIncrementalAlgebraic.m
 
 %---------------------------------------------------------------------%
 %         save output
 %---------------------------------------------------------------------%
 
-save Whipple.all
+save WhippleIncremental.all
 
 %---------------------------------------------------------------------%
