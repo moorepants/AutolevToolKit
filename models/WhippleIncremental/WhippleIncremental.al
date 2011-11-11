@@ -133,8 +133,8 @@ simprot(e,f,2,q8)
 % locate the center of mass for each body
 p_no_do>=q1*n1>+q2*n2>-rR*b3> % newtonian origin to rear wheel center
 p_do_co>=l1*c1>+l2*c3> % rear wheel center to bicycle frame center
-p_do_eo>=d1*c1>+l3*e1>+l4*e3> % rear wheel center to fork/handlebar center
 p_do_fo>=d1*c1>+d2*e3>+d3*e1> % rear wheel center to the front wheel center
+p_fo_eo>=l3*e1>+l4*e3> % rear wheel center to fork/handlebar center
 
 % locate the ground contact points
 p_do_dn>=rr*b3>
