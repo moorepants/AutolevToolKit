@@ -41,7 +41,7 @@ bodies c,d,e,f
 % nf: front contact point on ground
 % fn: front contact point on wheel
 
-points nd,dn,nf,fn
+points dn, fn
 
 points ce
 
@@ -141,9 +141,7 @@ p_fo_eo>=l3*e1>+l4*e3> % rear wheel center to fork/handlebar center
 
 % locate the ground contact points
 p_do_dn>=rr*b3>
-p_dn_nd>=0>
 p_fo_fn>=rF*unitvec(n3>-dot(e2>,n3>)*e2>)
-p_fn_nf>=0>
 
 %---------------------------------------------------------------------%
 %         define the kinematical differential equations
@@ -187,7 +185,7 @@ v2pts(n,f,fo,fn)
 %---------------------------------------------------------------------%
 
 % set the n3> component of p_nd_nf> equal to zero
-pzero=dot(p_nd_nf>,n3>)
+pzero=dot(p_dn_fn>,n3>)
 
 %---------------------------------------------------------------------%
 %         motion constraints
