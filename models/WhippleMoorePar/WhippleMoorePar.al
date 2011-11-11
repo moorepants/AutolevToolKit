@@ -209,7 +209,7 @@ v_do_n> = dt(p_no_do>, n)
 v2pts(n, c, do, co)
 v2pts(n, c, do, ce)
 v2pts(n, e, ce, fo)
-v2pts(n, e, fo, eo)
+v2pts(n, e, ce, eo)
 
 % wheel contact velocities
 v2pts(n, d, do, dn)
@@ -254,7 +254,7 @@ a_do_n> = dt(v_do_n>, n)
 a2pts(n, c, do, co)
 a2pts(n, c, do, ce)
 a2pts(n, e, ce, fo)
-a2pts(n, e, fo, eo)
+a2pts(n, e, ce, eo)
 
 %---------------------------------------------------------------------%
 %         forces and torques
