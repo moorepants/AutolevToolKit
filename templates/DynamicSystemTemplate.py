@@ -181,4 +181,7 @@ class Linear<name>(<name>):
 
         # the A needs to be self.A and needs to be initialize with zeros
 
+        # also the inputs show up in the following equations, not sure what
+        # that means
+
 <linear>
