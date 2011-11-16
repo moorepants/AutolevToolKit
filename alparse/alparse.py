@@ -127,7 +127,7 @@ def writeC(inFileStrings, cFileStrings, className):
         #        "#endif")
     fp_implementation.close()
 
-def write_python(inFileStrings, cFileStrings, className, directory=None):
+def write_python(inFileStrings, cFileStrings, className, matrixNames, directory=None):
     '''Writes a basic Python class definition.
 
     '''
@@ -189,6 +189,8 @@ def write_python(inFileStrings, cFileStrings, className, directory=None):
     data = re.sub('<extractConstants>',
             create_extract_parameter_lines(constantNames), data)
     data = re.sub('<extractStates>', create_extract_state_lines(stateNames), data)
+    data = re.sub('<linear>', self_dot_z(replace_linear_mat(matrixNames,
+        indent(linear, 8))), data)
 
     # write the modified data to file
     outputfile = open(classFile + '.py', 'w')
@@ -202,6 +204,19 @@ def write_python(inFileStrings, cFileStrings, className, directory=None):
     except IOError:
         open(pathToInit, 'w').close()
         print('Created {}.'.format(pathToInit))
+
+def indent(text, indentation):
+    """Adds the desired indentation to string of lines."""
+    itext = re.sub(r'\n', r'\n' + ' ' * indentation, text)
+    return ' ' * indentation + itext[:-indentation]
+
+def replace_linear_mat(matrixNames, text):
+    """Returns a string such that the linear matrix names are formatted for the
+    python output."""
+
+    for mat in zip(matrixNames, ('A', 'B', 'C', 'D')):
+        text = re.sub(mat[0] + r'\[(\d*)\]\[(\d*)\]', mat[1] + r'[\1, \2]', text)
+    return text
 
 def first_line(string, numIndents):
     firstLine = ' ' * 4 * numIndents + string
@@ -872,7 +887,7 @@ def alparse(fileNameBase, className, code="Text", directory=None,
     elif code == "C":
         writeC(inFileStrings, cFileStrings, className)
     elif code == "Python":
-        write_python(inFileStrings, cFileStrings, className, directory=directory)
+        write_python(inFileStrings, cFileStrings, className, linear, directory=directory)
     elif code == "C++":
         writeC++(inFileStrings, cFileStrings, className)
 

@@ -138,3 +138,47 @@ class <name>(DynamicSystem):
 <outputs>
 
         return y
+
+class Linear<name>(<name>):
+
+    name = "Linear<name>"
+
+    def f(self, x, t):
+        '''Returns the derivative of the states'''
+
+        # calculates inputs
+        u = self.inputs(t)
+
+        xd = dot(self.A, x) + dot(self.B, u)
+
+        return xd
+
+    def linear(self, x):
+        '''
+        Sets the A, B, C, D matrices based on the equi_points.
+
+        Parameters
+        ----------
+        x : array, shape(n,)
+            The equilibrium point to linearize about.
+
+        '''
+        # sets the zees for the equilbrium points
+        nonlin = <name>()
+        nonlin.f(x, 0.)
+        self.z = nonlin.z
+
+<extractParameters>
+
+<extractConstants>
+
+<extractStates>
+
+<dependent>
+        # turns out that the qdots may be in the linear equations below, so you
+        # really need the kinematical differential equations here so they will
+        # be available
+
+        # the A needs to be self.A and needs to be initialize with zeros
+
+<linear>
