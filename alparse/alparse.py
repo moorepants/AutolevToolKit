@@ -169,8 +169,11 @@ def write_python(inFileStrings, cFileStrings, className, matrixNames, directory=
     data = re.sub('<parameters>', parameterString, data)
 
     data = re.sub('<name>', className, data)
+
     data = re.sub('<inputNames>', input_lines(inputs)[0], data)
     data = re.sub('<inputs>', input_lines(inputs)[1], data)
+    data = re.sub('<zeroInputs>', zero_inputs(inputs), data)
+
     stateNames, initialConditions = variables_values(states)
     oNames, oLines = output_lines(outputNames, outputs)
     data = re.sub('<outputNames>', oNames, data)
@@ -181,6 +184,9 @@ def write_python(inFileStrings, cFileStrings, className, matrixNames, directory=
     data = re.sub('<eom>', eom_lines(parDict, stateNames, inputNames, odefunc), data)
     data = re.sub('<constants>', constants_lines(constants), data)
     data = re.sub('<dependent>', dependentVarLines, data)
+
+    data = re.sub('<kinematical>', self_dot_z(extract_kinematical(odefunc,
+        stateNames)), data)
 
     constantNames, blah = variables_values(constants)
 
@@ -205,6 +211,21 @@ def write_python(inFileStrings, cFileStrings, className, matrixNames, directory=
         open(pathToInit, 'w').close()
         print('Created {}.'.format(pathToInit))
 
+def extract_kinematical(odefun, stateNames):
+    kinematical = ''
+    for line in odefun.splitlines():
+        for state in stateNames:
+            if line.startswith(state):
+                kinematical += line + '\n'
+    return indent(kinematical, 8)
+
+def zero_inputs(inputs):
+    """Returns a line which sets each input variable equal to zero."""
+    zeroInputs = ''
+    for inputVar in inputs.splitlines():
+        zeroInputs += inputVar.split('=')[0].strip() + ' = 0.0\n'
+    return indent(zeroInputs, 8)
+
 def indent(text, indentation):
     """Adds the desired indentation to string of lines."""
     itext = re.sub(r'\n', r'\n' + ' ' * indentation, text)
@@ -214,7 +235,7 @@ def replace_linear_mat(matrixNames, text):
     """Returns a string such that the linear matrix names are formatted for the
     python output."""
 
-    for mat in zip(matrixNames, ('A', 'B', 'C', 'D')):
+    for mat in zip(matrixNames, ('self.A', 'self.B', 'self.C', 'self.D')):
         text = re.sub(mat[0] + r'\[(\d*)\]\[(\d*)\]', mat[1] + r'[\1, \2]', text)
     return text
 

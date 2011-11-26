@@ -1,7 +1,7 @@
 import os
 from numpy import zeros, zeros_like
 from numpy import sin, cos, tan
-from alparse.DynamicSystem import DynamicSystem
+from alparse.DynamicSystem import DynamicSystem, LinearDynamicSystem
 
 class <name>(DynamicSystem):
     """
@@ -139,30 +139,61 @@ class <name>(DynamicSystem):
 
         return y
 
-class Linear<name>(<name>):
+class Linear<name>(<name>, LinearDynamicSystem):
 
     name = "Linear<name>"
+
+    def inputs(self, t):
+        '''Returns the inputs to the system.
+
+        Parameters
+        ----------
+        t : float
+            Time.
+
+        Returns
+        -------
+        u : ndarray, shape(m,)
+            The input array as a function of time.
+
+        '''
+        T = t # this is hack because autolev likes to capitlize everything
+        # initialize the u vector
+        u = zeros(len(self.inputNames))
+        # calculate the inputs
+<inputs>
+        return u
 
     def f(self, x, t):
         '''Returns the derivative of the states'''
 
-        # calculates inputs
         u = self.inputs(t)
 
         xd = dot(self.A, x) + dot(self.B, u)
 
         return xd
 
+    def outputs(self, x):
+
+        u = self.inputs(t)
+
+        y = dot(self.C, x) + dot(self.B, u)
+
+        return y
+
     def linear(self, x):
-        '''
-        Sets the A, B, C, D matrices based on the equi_points.
+        """Calculates the state, input, output and feedforward  matrices for the
+        system linearized about the provided equilibrium point.
 
         Parameters
         ----------
-        x : array, shape(n,)
-            The equilibrium point to linearize about.
+        x : ndarray, shape(n,)
+            The point at which to linearize the system about. The order of the
+            values corresponds to the system states.
 
-        '''
+        """
+
+        self.equilibriumPoint = x
         # sets the zees for the equilbrium points
         nonlin = <name>()
         nonlin.f(x, 0.)
@@ -175,13 +206,23 @@ class Linear<name>(<name>):
 <extractStates>
 
 <dependent>
+
         # turns out that the qdots may be in the linear equations below, so you
         # really need the kinematical differential equations here so they will
         # be available
 
+<kinematical>
+
         # the A needs to be self.A and needs to be initialize with zeros
+
+        self.A = zeros((len(self.stateNames), len(self.stateNames)))
+        self.B = zeros((len(self.stateNames), len(self.inputNames)))
+        self.C = zeros((len(self.outputNames), len(self.stateNames)))
+        self.D = zeros((len(self.outputNames), len(self.inputNames)))
 
         # also the inputs show up in the following equations, not sure what
         # that means
+
+<zeroInputs>
 
 <linear>

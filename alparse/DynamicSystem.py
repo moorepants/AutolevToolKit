@@ -2,7 +2,7 @@ from numpy import zeros, zeros_like, dot
 from numpy import linspace, rank
 from numpy.linalg import eig
 from scipy.integrate import odeint
-from matplotlib.pyplot import plot, show, legend, xlabel, title
+from matplotlib.pyplot import plot, show, legend, xlabel, title, figure
 from matplotlib.pyplot import scatter, colorbar, cm, grid, axis
 import pickle
 import os
@@ -228,51 +228,49 @@ class DynamicSystem:
         Makes a plot of the simulation
 
         '''
+        fig = figure()
         plot(self.simResults['t'], self.simResults['y'])
         legend(self.outputNames)
         xlabel('Time [sec]')
-        show()
+        return fig
 
 class LinearDynamicSystem(DynamicSystem):
 
     name = "LinearDynamicSystem"
 
-    def __init__(self, equi_points):
+    def __init__(self, equilibriumPoint):
         '''This function should take the equilibrium points and calculate the
         linear system: A, B, C, D either numerically or with analytic
         expressions'''
-        self.equib = equi_points
-        self.linear(self.equib)
+        self.linear(equilibriumPoint)
 
     def f(self, x, t):
         '''Returns the derivative of the states'''
 
-        # defines the parameters from the attribute
-        for parameter, value in self.parameters.items():
-            exec(parameter + ' = ' + str(value))
-
-        # calculates inputs
         u = self.inputs(t)
 
-        xp = dot(self.A,x) + dot(self.B,u)
+        xd = dot(self.A, x) + dot(self.B, u)
 
-        thetap = xp[0]
-        omegap = xp[1]
+        return xd
 
-        # plug in the derivatives for returning
-        f = zeros(2)
-        f[0] = thetap
-        f[1] = omegap
+    def linear(self, equilibriumPoint):
+        """Calculates the state, input, output and feedforward  matrices for the
+        system linearized about the provided equilibrium point.
 
-        return f
+        Parameters
+        ----------
+        equilibriumPoint : ndarray, shape(n,)
+            The point at which to linearize the system about. The order of the
+            values corresponds to the system states.
 
-    def linear(self, equi_points):
-        '''
-        Sets the A, B, C, D matrices based on the equi_points.
+        """
 
-        '''
+        self.equilibriumPoint = equilibriumPoint
+
         # sets the zees for the equilbrium points
-        Pendulum.f(self, equi_points, 0.)
+        nonlin = DynamicSystem()
+        nonlin.f(self.equilibriumPoint, 0.)
+
         # defines the A, B, C, D matrices
         self.A = zeros((2,2))
         self.B = zeros(2)
@@ -300,46 +298,104 @@ class LinearDynamicSystem(DynamicSystem):
         self.D[3] = 0
         self.D[4] = 0
 
-    def eig(self, *args, **kwargs):
-        '''
-        Calculates the eigenvalues of the system.
-        '''
+    def root_loci(self, var, start, stop, num=None):
+        """Returns the eigenvalues and eigenvectors as a function of a single
+        parameter.
 
-        # is the first arg a parameter?
-        if args[0] in self.parameters.keys():
-            par_range = linspace(kwargs['range'][0],
-                                 kwargs['range'][1],
-                                 100)
-            w = zeros((len(par_range), rank(self.A)), dtype=complex)
-            for i, val in enumerate(par_range):
-                # set the parameter
-                exec("self.parameters['" + args[0] + "']=" + str(val))
-                # calculate the A matrix
-                self.linear(self.equib)
-                # calculate the eigenvalues
-                w[i] = eig(self.A)[0]
-            return w, par_range
+        Parameters
+        ----------
+        var : string
+            The parameter or equilibrim point (state) to vary.
+        start : float
+            The starting value.
+        stop : float
+            The ending value.
+        num : integer, optional
+            The number of steps.
+
+        Returns
+        -------
+        eValues : ndarray, shape(n,m)
+        eVectors : ndarray, shape(n,m,m)
+        values : ndarray, shape(n)
+            The values at which the model was linea
+
+        """
+        eValues = zeros((num, len(self.stateNames)), dtype=complex)
+        eVectors = zeros((num, len(self.stateNames), len(self.stateNames)),
+                dtype=complex)
+        if num is None:
+            num = 50
+        values = linspace(start, stop, num=num)
+
+        if var in self.parameters.keys():
+            original = self.parameters[var]
+            for i, val in enumerate(values):
+                self.parameters[var] = val
+                self.linear(self.equilibriumPoint)
+                eValues[i], eVectors[i] = self.eig()
+            # set the model back to the default
+            self.parameters[var] = original
+            self.linear(self.equilibriumPoint)
+        elif var in self.stateNames:
+            index = self.stateNames.index(var)
+            original = self.equilibriumPoint[index]
+            for i, val in enumerate(values):
+                self.equilibriumPoint[index] = val
+                self.linear(self.equilibriumPoint)
+                eValues[i], eVectors[i] = self.eig()
+            # set the model back to the default
+            self.equilibriumPoint[index] = original
+            self.linear(self.equilibriumPoint)
         else:
-            return eig(self.A)
+            raise ValueError('{} is not a valid parameter.'.format(var))
 
-    def plot(self, typ=None, *args, **kwargs):
-        '''Makes a plot of the simulation'''
+        return eValues, eVectors, values
+
+    def eig(self):
+        """Returns the eigenvalues and eigenvectors of the system."""
+        return eig(self.A)
+
+    def plot_root_loci(self, parameter, start, stop, num=None, axes='complex'):
+        """Returns a plot of the roots with respect to change in a single
+        parameter.
+
+        Parameters
+        ----------
+        parameter : string
+            The parameter to vary.
+        start : float
+            The starting value of the parameter.
+        stop : float
+            The ending value of the parameter.
+        num : integer, optional
+            The number of steps in the parameter.
+        axes : string
+            If `complex` the roots are plotted in the complex plane with a
+            colorbar depicting the variation in the parameter. If `parameter`
+            the roots are plotting as the real and imaginary parts with respect
+            to the parameter variation.
+
+        Returns
+        -------
+        rootLociFig
+
+        """
+
         # plot a graph with all the outputs
-        if typ == None:
-            intDict = pickle.load(open(self.name + '.p'))
-            plot(intDict['t'], intDict['x'])
-            legend(self.state_names)
-            xlabel('Time [sec]')
-        elif typ == 'loci':
-            par = kwargs['param']
-            par_range = kwargs['range']
-            exec("w, p = self.eig(par, range=" + str(par_range) + ')')
-            for j in range(w.shape[1]):
-                scatter(w[:, j].real, w[:, j].imag, s=2, c=p,
-                                    cmap=cm.gist_rainbow,
-                                    edgecolors='none')
-                colorbar()
-                grid()
-                axis('equal')
-                title('Roci loci wrt to {param}'.format(param=par))
-        show()
+        eValues, eVectors, parValues = self.root_loci(parameter, start, stop, num=num)
+        rootLociFig = figure()
+        if axes == 'complex':
+            x = eValues.real
+            y = eValues.imag
+            scatter(x, y, s=2, c=parValues, cmap=cm.gist_rainbow, edgecolors='none')
+            #colorbar()
+            grid()
+            axis('equal')
+        elif axes == 'parameter':
+            plot(parValues, eValues.real, 'k.')
+            plot(parValues, eValues.imag, 'r.')
+
+        title('Roci loci wrt to {}'.format(parameter))
+
+        return rootLociFig
