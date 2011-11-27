@@ -139,47 +139,9 @@ class <name>(DynamicSystem):
 
         return y
 
-class Linear<name>(<name>, LinearDynamicSystem):
+class Linear<name>(LinearDynamicSystem, <name>):
 
     name = "Linear<name>"
-
-    def inputs(self, t):
-        '''Returns the inputs to the system.
-
-        Parameters
-        ----------
-        t : float
-            Time.
-
-        Returns
-        -------
-        u : ndarray, shape(m,)
-            The input array as a function of time.
-
-        '''
-        T = t # this is hack because autolev likes to capitlize everything
-        # initialize the u vector
-        u = zeros(len(self.inputNames))
-        # calculate the inputs
-<inputs>
-        return u
-
-    def f(self, x, t):
-        '''Returns the derivative of the states'''
-
-        u = self.inputs(t)
-
-        xd = dot(self.A, x) + dot(self.B, u)
-
-        return xd
-
-    def outputs(self, x):
-
-        u = self.inputs(t)
-
-        y = dot(self.C, x) + dot(self.B, u)
-
-        return y
 
     def linear(self, x):
         """Calculates the state, input, output and feedforward  matrices for the

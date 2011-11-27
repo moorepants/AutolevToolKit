@@ -7,7 +7,7 @@ from matplotlib.pyplot import scatter, colorbar, cm, grid, axis
 import pickle
 import os
 
-class DynamicSystem:
+class DynamicSystem(object):
     """
     Dynamic System class.
 
@@ -145,6 +145,22 @@ class DynamicSystem:
 
         return y
 
+    def set_parameters(self, par):
+        """Sets the parameters with the given dictionary.
+
+        Parameters
+        ----------
+        par : dictionary
+            A dictionary at least some or all of the parameters of the model.
+
+        """
+        for p in self.parameters.keys():
+            try:
+                self.parameters[p] = par[p]
+            except KeyError:
+                print('{}'.format(p) + ' was not in the provided ' +
+                        'parameters and thus was not set.')
+
     def simulate(self):
         '''
         Simulates the system.
@@ -164,9 +180,9 @@ class DynamicSystem:
                      self.intOpts['tf'] - self.intOpts['ts'],
                      (self.intOpts['tf'] - self.intOpts['ti']) / self.intOpts['ts'])
 
-        print self.stateNames
-        print self.outputNames
-        print self.inputNames
+        #print self.stateNames
+        #print self.outputNames
+        #print self.inputNames
 
         # initialize the vectors
         x = zeros((len(t), len(self.x)))
@@ -238,12 +254,6 @@ class LinearDynamicSystem(DynamicSystem):
 
     name = "LinearDynamicSystem"
 
-    def __init__(self, equilibriumPoint):
-        '''This function should take the equilibrium points and calculate the
-        linear system: A, B, C, D either numerically or with analytic
-        expressions'''
-        self.linear(equilibriumPoint)
-
     def f(self, x, t):
         '''Returns the derivative of the states'''
 
@@ -252,6 +262,14 @@ class LinearDynamicSystem(DynamicSystem):
         xd = dot(self.A, x) + dot(self.B, u)
 
         return xd
+
+    def outputs(self, x):
+
+        # the feedforward needs to be included with the inputs, thus making
+        # this a function of time.
+        y = dot(self.C, x)
+
+        return y
 
     def linear(self, equilibriumPoint):
         """Calculates the state, input, output and feedforward  matrices for the
