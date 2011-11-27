@@ -145,6 +145,25 @@ class DynamicSystem(object):
 
         return y
 
+    def set_initial_condition(self, var, val):
+        """Sets a given initial condition.
+
+        Parameters
+        ----------
+        var : string
+            The state name of the initial condition.
+        val : float
+            The value of the initial conidition.
+
+        """
+
+        try:
+            index = self.stateNames.index(var)
+        except ValueError:
+            raise ValueError('{} is not a valid state.'.format(var))
+
+        self.initialConditions[index] = val
+
     def set_parameters(self, par):
         """Sets the parameters with the given dictionary.
 
