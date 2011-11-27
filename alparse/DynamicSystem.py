@@ -145,8 +145,10 @@ class DynamicSystem(object):
 
         return y
 
-    def set_initial_condition(self, var, val):
+    def set_initial_conditions(self, *args):
         """Sets a given initial condition.
+
+        This function takes a series of variable, value pairs.
 
         Parameters
         ----------
@@ -157,12 +159,19 @@ class DynamicSystem(object):
 
         """
 
-        try:
-            index = self.stateNames.index(var)
-        except ValueError:
-            raise ValueError('{} is not a valid state.'.format(var))
+        if len(args) % 2 != 0:
+            raise StandardError('You must have an even number of arguments.')
 
-        self.initialConditions[index] = val
+        states = [x for i, x in enumerate(args) if i % 2 == 0]
+        values = [x for i, x in enumerate(args) if i % 2 != 0]
+
+        for var, val in zip(states, values):
+            try:
+                index = self.stateNames.index(var)
+            except ValueError:
+                raise ValueError('{} is not a valid state.'.format(var))
+
+            self.initialConditions[index] = val
 
     def set_parameters(self, par):
         """Sets the parameters with the given dictionary.
@@ -179,6 +188,9 @@ class DynamicSystem(object):
             except KeyError:
                 print('{}'.format(p) + ' was not in the provided ' +
                         'parameters and thus was not set.')
+
+        # recalculate the constants
+        self.constants()
 
     def simulate(self):
         '''
