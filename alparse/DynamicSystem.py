@@ -405,7 +405,8 @@ class LinearDynamicSystem(DynamicSystem):
         """Returns the eigenvalues and eigenvectors of the system."""
         return eig(self.A)
 
-    def plot_root_loci(self, parameter, start, stop, num=None, axes='complex'):
+    def plot_root_loci(self, parameter, start, stop, num=None, axes='complex',
+            parts='both'):
         """Returns a plot of the roots with respect to change in a single
         parameter.
 
@@ -424,6 +425,9 @@ class LinearDynamicSystem(DynamicSystem):
             colorbar depicting the variation in the parameter. If `parameter`
             the roots are plotting as the real and imaginary parts with respect
             to the parameter variation.
+        parts : string, optional
+            Can be set to 'both', 'real', or 'imaginary'. This only applies to
+            axes='parameter' plots.
 
         Returns
         -------
@@ -442,8 +446,13 @@ class LinearDynamicSystem(DynamicSystem):
             grid()
             axis('equal')
         elif axes == 'parameter':
-            plot(parValues, eValues.real, 'k.')
-            plot(parValues, eValues.imag, 'r.')
+            if parts == 'both' or parts == 'imaginary':
+                plot(parValues, eValues.imag, 'r.')
+            if parts == 'both' or parts == 'real':
+                plot(parValues, eValues.real, 'k.')
+            if start > stop:
+                ax = rootLociFig.axes[0]
+                ax.invert_xaxis()
 
         title('Roci loci wrt to {}'.format(parameter))
 
