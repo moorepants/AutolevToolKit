@@ -454,6 +454,6 @@ class LinearDynamicSystem(DynamicSystem):
                 ax = rootLociFig.axes[0]
                 ax.invert_xaxis()
 
-        title('Roci loci wrt to {}'.format(parameter))
+        title('Root loci with to {}'.format(parameter))
 
         return rootLociFig
