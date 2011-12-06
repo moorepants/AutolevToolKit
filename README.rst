@@ -1,3 +1,9 @@
+This is a collection of Python based tools that scrape Autolev 4.1 input/output
+files and produce simulation, analyses and publication code.
+
+This is a fork of the alparse script written by Dale L. Peterson which has been
+heavily modified and extended.
+
 alparse
 =======
 
@@ -10,7 +16,7 @@ and pasting that is often done when modifying the Autolev code to fit your
 needs.
 
 Currently, the goal is to support several types of output code:
-1) Psuedo-code to be use in our Bicycle Dynamics Software
+1) Psuedo-code
 2) Python code
 3) C code
 4) C++ code

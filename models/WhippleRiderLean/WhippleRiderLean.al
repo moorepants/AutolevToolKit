@@ -8,8 +8,8 @@
 %         default settings
 %---------------------------------------------------------------------%
 
-autoz on
-autorhs off
+autoz off
+autorhs all
 overwrite all
 beepsound off
 
@@ -234,13 +234,60 @@ v2pts(n, c, do, co)
 v2pts(n, c, do, ce)
 v2pts(n, e, ce, fo)
 v2pts(n, e, ce, eo)
+wxcg> = cross(w_c_n>, p_do_cg>)
 v2pts(n, c, do, cg)
+wxgo> = cross(w_g_n>, p_cg_go>)
 v2pts(n, g, cg, go)
 
 % wheel contact velocities
 v2pts(n, d, do, dn)
 v2pts(n, f, fo, fn)
 
+%---------------------------------------------------------------------%
+%         angular accelerations
+%---------------------------------------------------------------------%
+
+alf_c_n> = dt(w_c_n>, n)
+alf_d_n> = dt(w_d_n>, n)
+alf_e_n> = dt(w_e_n>, n)
+alf_f_n> = dt(w_f_n>, n)
+alf_g_n> = dt(w_g_n>, n)
+
+%---------------------------------------------------------------------%
+%         accelerations
+%---------------------------------------------------------------------%
+
+a_do_n> = dt(v_do_n>, n)
+a2pts(n, c, do, co)
+a2pts(n, c, do, ce)
+a2pts(n, e, ce, fo)
+a2pts(n, e, ce, eo)
+axcg> = cross(alf_c_n>, p_do_cg>)
+wxwxcg> = cross(w_c_n>, cross(w_c_n>, p_do_cg>))
+a2pts(n, c, do, cg)
+axcg> = cross(alf_g_n>, p_cg_go>)
+wxwxgo> = cross(w_g_n>, cross(w_g_n>, p_cg_go>))
+a2pts(n, g, cg, go)
+
+%---------------------------------------------------------------------%
+%         forces and torques
+%---------------------------------------------------------------------%
+
+gravity(g * n3>, c, d, e, f, g)
+torque(n/c, T4 * a1>) % roll torque
+torque(c/d, T6 * c2>) % rear wheel torque
+torque(c/e, T7 * c3>) % steer torque
+torque(c/g, T9 * g1>) % rider active lean torque
+torque(c/g, -(c9 * u9 + k9 * q9) * g1>) % rider passive lean torque
+
+%---------------------------------------------------------------------%
+%         save output
+%---------------------------------------------------------------------%
+
+save WhippleRiderLean.all
+
+%---------------------------------------------------------------------%
+pause
 %---------------------------------------------------------------------%
 %         motion constraints
 %---------------------------------------------------------------------%
@@ -263,39 +310,6 @@ dependent[5] = dt(pzero)
 % independent generalized speeds
 
 constrain(dependent[u1, u2, u3, u5, u8])
-
-%---------------------------------------------------------------------%
-%         angular accelerations
-%---------------------------------------------------------------------%
-
-alf_c_n> = dt(w_c_n>, n)
-alf_d_n> = dt(w_d_n>, n)
-alf_e_n> = dt(w_e_n>, n)
-alf_f_n> = dt(w_f_n>, n)
-alf_g_n> = dt(w_g_n>, n)
-
-%---------------------------------------------------------------------%
-%         accelerations
-%---------------------------------------------------------------------%
-
-a_do_n> = dt(v_do_n>, n)
-a2pts(n, c, do, co)
-a2pts(n, c, do, ce)
-a2pts(n, e, ce, fo)
-a2pts(n, e, ce, eo)
-a2pts(n, c, do, cg)
-a2pts(n, g, cg, go)
-
-%---------------------------------------------------------------------%
-%         forces and torques
-%---------------------------------------------------------------------%
-
-gravity(g * n3>, c, d, e, f, g)
-torque(n/c, T4 * a1>) % roll torque
-torque(c/d, T6 * c2>) % rear wheel torque
-torque(c/e, T7 * c3>) % steer torque
-torque(c/g, T9 * g1>) % rider active lean torque
-torque(c/g, -(c9 * u9 + k9 * q9) * g1>) % rider passive lean torque
 
 %---------------------------------------------------------------------%
 %         equations of motion
