@@ -1,9 +1,7 @@
-from numpy import zeros, zeros_like, dot
-from numpy import linspace, rank
+import numpy as np
 from numpy.linalg import eig
 from scipy.integrate import odeint
-from matplotlib.pyplot import plot, show, legend, xlabel, title, figure
-from matplotlib.pyplot import scatter, colorbar, cm, grid, axis
+import matplotlib.pyplot as plt
 import pickle
 import os
 
@@ -46,16 +44,16 @@ class DynamicSystem(object):
                    'y2']
 
     # initialize state vector
-    x = zeros(len(stateNames))
+    x = np.zeros(len(stateNames))
 
     # initialize output vector
-    y = zeros(len(outputNames))
+    y = np.zeros(len(outputNames))
 
     # initialize input vector
-    u = zeros(len(inputNames))
+    u = np.zeros(len(inputNames))
 
     # initialize the zees
-    z = zeros(1)
+    z = np.zeros(1)
 
     # sets the time to the initial time
     t = intOpts['ti']
@@ -98,11 +96,29 @@ class DynamicSystem(object):
         x2p = a * 1. + b * F1
 
         # store the results in f and return
-        f = zeros_like(x)
+        f = np.zeros_like(x)
         f[0] = x1p
         f[1] = x2p
 
         return f
+
+    def get_sim_output(self, outputName):
+        """Returns the time history of the specified output from the latest
+        simulation.
+
+        Parameters
+        ----------
+        outputName : str
+            The name of the desired output.
+
+        Returns
+        -------
+        output : ndarray, (n,)
+            The array of values.
+
+        """
+
+        return self.simResults['y'][:, self.outputNames.index(outputName)]
 
     def inputs(self, t):
         '''Returns the inputs to the system.
@@ -119,7 +135,7 @@ class DynamicSystem(object):
 
         '''
         # initialize the input array
-        u = zeros(len(self.inputNames))
+        u = np.zeros(len(self.inputNames))
         # calculate or specifiy the input vector
         u[0] = 1.
         return u
@@ -139,7 +155,7 @@ class DynamicSystem(object):
             The output vector.
 
         '''
-        y = zeros(len(self.outputNames))
+        y = np.zeros(len(self.outputNames))
         y[0] = x[0]
         y[1] = x[1]
 
@@ -207,18 +223,18 @@ class DynamicSystem(object):
         self.constants()
 
         # time vector
-        t = linspace(self.intOpts['ti'],
-                     self.intOpts['tf'] - self.intOpts['ts'],
-                     (self.intOpts['tf'] - self.intOpts['ti']) / self.intOpts['ts'])
+        t = np.linspace(self.intOpts['ti'],
+                        self.intOpts['tf'] - self.intOpts['ts'],
+                        (self.intOpts['tf'] - self.intOpts['ti']) / self.intOpts['ts'])
 
         #print self.stateNames
         #print self.outputNames
         #print self.inputNames
 
         # initialize the vectors
-        x = zeros((len(t), len(self.x)))
-        u = zeros((len(t), len(self.u)))
-        y = zeros((len(t), len(self.y)))
+        x = np.zeros((len(t), len(self.x)))
+        u = np.zeros((len(t), len(self.u)))
+        y = np.zeros((len(t), len(self.y)))
 
         # set the initial conditions
         x[0] = self.initialConditions
@@ -275,10 +291,10 @@ class DynamicSystem(object):
         Makes a plot of the simulation
 
         '''
-        fig = figure()
-        plot(self.simResults['t'], self.simResults['y'])
-        legend(self.outputNames)
-        xlabel('Time [sec]')
+        fig = plt.figure()
+        plt.plot(self.simResults['t'], self.simResults['y'])
+        plt.legend(self.outputNames)
+        plt.xlabel('Time [sec]')
         return fig
 
 class LinearDynamicSystem(DynamicSystem):
@@ -290,7 +306,7 @@ class LinearDynamicSystem(DynamicSystem):
 
         u = self.inputs(t)
 
-        xd = dot(self.A, x) + dot(self.B, u)
+        xd = np.dot(self.A, x) + np.dot(self.B, u)
 
         return xd
 
@@ -298,7 +314,7 @@ class LinearDynamicSystem(DynamicSystem):
 
         # the feedforward needs to be included with the inputs, thus making
         # this a function of time.
-        y = dot(self.C, x)
+        y = np.dot(self.C, x)
 
         return y
 
@@ -321,10 +337,10 @@ class LinearDynamicSystem(DynamicSystem):
         nonlin.f(self.equilibriumPoint, 0.)
 
         # defines the A, B, C, D matrices
-        self.A = zeros((2,2))
-        self.B = zeros(2)
-        self.C = zeros((5,2))
-        self.D = zeros(5)
+        self.A = np.zeros((2,2))
+        self.B = np.zeros(2)
+        self.C = np.zeros((5,2))
+        self.D = np.zeros(5)
         self.A[0,0] = 0
         self.A[0,1] = 1
         self.A[1,0] = -0.5*self.z[13]
@@ -370,12 +386,12 @@ class LinearDynamicSystem(DynamicSystem):
             The values at which the model was linea
 
         """
-        eValues = zeros((num, len(self.stateNames)), dtype=complex)
-        eVectors = zeros((num, len(self.stateNames), len(self.stateNames)),
-                dtype=complex)
         if num is None:
             num = 50
-        values = linspace(start, stop, num=num)
+        eValues = np.zeros((num, len(self.stateNames)), dtype=complex)
+        eVectors = np.zeros((num, len(self.stateNames), len(self.stateNames)),
+                dtype=complex)
+        values = np.linspace(start, stop, num=num)
 
         if var in self.parameters.keys():
             original = self.parameters[var]
@@ -401,9 +417,143 @@ class LinearDynamicSystem(DynamicSystem):
 
         return eValues, eVectors, values
 
-    def eig(self):
-        """Returns the eigenvalues and eigenvectors of the system."""
-        return eig(self.A)
+    def eig(self, essential=None):
+        """Returns the eigenvalues and eigenvectors of the system.
+
+        Parameters
+        ----------
+        essential : tuple, optional
+            Should contain the state names of the rows and columns that should
+            be kept. This is useful if your system has ignorable coordinates
+            and you want to get the eigenvalues for the essential system.
+
+        """
+        if essential is not None:
+            toKeep = [self.stateNames.index(state) for state in essential]
+            A = self.A[toKeep][:, toKeep]
+            return eig(A)
+        else:
+            return eig(self.A)
+
+    def plot_eigenvectors(self, states=None, show=False, pub=False):
+        """Plots the components of the eigenvectors in the real and imaginary
+        plane.
+
+        Parameters
+        ----------
+        states : tuple, optional
+            The state names corresponding to the eigenvector components that
+            should be plotted. If not provided, all components will be plotted.
+        show : boolean, optional
+            If True, the plots will be displayed to the screen.
+
+        Returns
+        -------
+        figs : list
+            A list of matplotlib figures.
+
+        Notes
+        -----
+        Plots are note produced for zero eigenvalues.
+
+        """
+        if states is None:
+            states = self.stateNames
+        if pub is True:
+            #fig_size =  [fig_width,fig_height]
+            fig_size =  [3., 3.]
+            params = {'backend': 'ps',
+                      'axes.labelsize': 10,
+                      'axes.titlesize': 10,
+                      'text.fontsize': 10,
+                      'legend.fontsize': 10,
+                      'xtick.labelsize': 8,
+                      'ytick.labelsize': 8,
+                      'text.usetex': True,
+                      'figure.figsize': fig_size}
+            plt.rcParams.update(params)
+        w, v = self.remove_eig_pairs()
+        figs = []
+        lw = range(1, len(states) + 1)
+        lw.reverse()
+        for i, eVal in enumerate(w):
+            figs.append(plt.figure())
+            ax = figs[-1].add_subplot(1, 1, 1, polar=True)
+            eVec = v[[self.stateNames.index(state) for state in states], i]
+            maxCom = abs(eVec).max()
+            for j, component in enumerate(eVec):
+                radius = abs(component) / maxCom
+                theta = np.angle(component)
+                ax.plot([0, theta], [0, radius], lw=lw[j])
+            ax.set_rmax(1.0)
+            ax.legend(states)
+            ax.set_title('Eigenvalue: %1.3f$\pm$%1.3fj' % (eVal.real, eVal.imag))
+
+        if show is True:
+            for fig in figs:
+                fig.show()
+
+        return figs
+
+    def sort_modes(self, evals, evecs):
+        """Sort a series of eigenvalues and eigenvectors into modes.
+
+        Parameters
+        ----------
+        evals : ndarray, shape (n, m)
+            eigenvalues
+        evecs : ndarray, shape (n, m, m)
+            eigenvectors
+
+        """
+        evalsorg = np.zeros_like(evals)
+        evecsorg = np.zeros_like(evecs)
+        # set the first row to be the same
+        evalsorg[0] = evals[0]
+        evecsorg[0] = evecs[0]
+        # for each speed
+        for i, speed in enumerate(evals):
+            if i == evals.shape[0] - 1:
+                break
+            # for each current eigenvalue
+            used = []
+            for j, e in enumerate(speed):
+                x, y = np.real(evalsorg[i, j]), np.imag(evalsorg[i, j])
+                # for each eigenvalue at the next speed
+                dist = np.zeros(evals.shape[1])
+                for k, eignext in enumerate(evals[i + 1]):
+                    xn, yn = np.real(eignext), np.imag(eignext)
+                    # distance between points in the real/imag plane
+                    dist[k] = np.abs(((xn - x)**2 + (yn - y)**2)**0.5)
+                if np.argmin(dist) in used:
+                    # set the already used indice higher
+                    dist[np.argmin(dist)] = np.max(dist) + 1.
+                else:
+                    pass
+                evalsorg[i + 1, j] = evals[i + 1, np.argmin(dist)]
+                evecsorg[i + 1, :, j] = evecs[i + 1, :, np.argmin(dist)]
+                # keep track of the indices we've used
+                used.append(np.argmin(dist))
+        return evalsorg, evecsorg
+
+    def remove_eig_pairs(self):
+        """Returns the non-zero eigenvalues and eigenvectors which have
+        positive imaginary parts."""
+        w, v = self.min_eig()
+        indices = []
+        for i, eVal in enumerate(w):
+            if eVal.imag >= 0.0:
+                indices.append(i)
+        return w[indices], v[:, indices]
+
+    def min_eig(self):
+        """Returns the non-zero eigenvalues and eigenvectors."""
+        w, v = self.eig()
+        indices = []
+        for i, eVal in enumerate(w):
+            if abs(eVal.real - 0.) > 1e-8 or abs(eVal.imag - 0.) > 1e-8:
+                indices.append(i)
+        return w[indices], v[:, indices]
 
     def plot_root_loci(self, parameter, start, stop, num=None, axes='complex',
             parts='both'):
@@ -437,23 +587,23 @@ class LinearDynamicSystem(DynamicSystem):
 
         # plot a graph with all the outputs
         eValues, eVectors, parValues = self.root_loci(parameter, start, stop, num=num)
-        rootLociFig = figure()
+        rootLociFig = plt.figure()
         if axes == 'complex':
             x = eValues.real
             y = eValues.imag
-            scatter(x, y, s=2, c=parValues, cmap=cm.gist_rainbow, edgecolors='none')
+            plt.scatter(x, y, s=2, c=parValues, cmap=plt.cm.gist_rainbow, edgecolors='none')
             #colorbar()
-            grid()
-            axis('equal')
+            plt.grid()
+            plt.axis('equal')
         elif axes == 'parameter':
             if parts == 'both' or parts == 'imaginary':
-                plot(parValues, eValues.imag, 'r.')
+                plt.plot(parValues, eValues.imag, 'r.')
             if parts == 'both' or parts == 'real':
-                plot(parValues, eValues.real, 'k.')
+                plt.plot(parValues, eValues.real, 'k.')
             if start > stop:
                 ax = rootLociFig.axes[0]
                 ax.invert_xaxis()
 
-        title('Root loci with to {}'.format(parameter))
+        plt.title('Root loci with to {}'.format(parameter))
 
         return rootLociFig
