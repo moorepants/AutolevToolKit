@@ -1,7 +1,7 @@
 import os
 from numpy import zeros, zeros_like
 from numpy import sin, cos, tan
-from alparse.DynamicSystem import DynamicSystem, LinearDynamicSystem
+from altk.dynamicsystem import DynamicSystem, LinearDynamicSystem
 
 class <name>(DynamicSystem):
     """

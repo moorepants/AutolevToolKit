@@ -1,11 +1,13 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='AutolevToolKit',
     version='0.1.0dev',
     author=['Jason Keith Moore', 'Dale Lukas Peterson'],
     author_email=['moorepants@gmail.com', 'hazelnusse@gmail.com'],
-    packages=['altk', 'altk.test', 'models'],
+    packages=['altk', 'altk.tests'],
+    package_data={'altk': ['templates/*.txt']},
+    include_package_data=True,
     url='http://github.com/moorepants/AutolevToolKit',
     license='LICENSE.txt',
     description='Parses Autolev 4.1 input and output files for use in other languages.',
