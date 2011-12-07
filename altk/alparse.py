@@ -151,7 +151,8 @@ def write_python(inFileStrings, cFileStrings, className, matrixNames, directory=
     #print "outputNames:\n", outputNames
 
     # open up the template file
-    template = open(os.path.join('templates', 'DynamicSystemTemplate.py'), 'r')
+    template = open(os.path.join(os.path.dirname(__file__), 'templates',
+        'DynamicSystemTemplate.txt'), 'r')
     # grab the text from the template file
     data = template.read()
     template.close()
@@ -202,14 +203,6 @@ def write_python(inFileStrings, cFileStrings, className, matrixNames, directory=
     outputfile = open(classFile + '.py', 'w')
     outputfile.write(data)
     outputfile.close()
-
-    # make sure there is an __init__.py file in the directory
-    pathToInit = os.path.join(directory, '__init__.py')
-    try:
-        open(pathToInit)
-    except IOError:
-        open(pathToInit, 'w').close()
-        print('Created {}.'.format(pathToInit))
 
 def extract_kinematical(odefun, stateNames):
     kinematical = ''
@@ -896,7 +889,10 @@ def alparse(fileNameBase, className, code="Text", directory=None,
         fileNameBase = os.path.join(directory, fileNameBase)
 
     # remove those stupid alTmp files in the directory
-    os.system('rm ' + os.path.join(directory, 'alTmp.*'))
+    try:
+        os.system('rm ' + os.path.join(directory, 'alTmp.*'))
+    except:
+        pass
 
     inFileStrings = alparsein(fileNameBase, code)
     cFileStrings = alparsec(fileNameBase, code, linear,
