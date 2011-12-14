@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 from numpy.linalg import eig
 from scipy.integrate import odeint
@@ -302,7 +303,7 @@ class LinearDynamicSystem(DynamicSystem):
     name = "LinearDynamicSystem"
 
     def f(self, x, t):
-        '''Returns the derivative of the states'''
+        '''Returns the derivative of the states.'''
 
         u = self.inputs(t)
 
@@ -363,7 +364,7 @@ class LinearDynamicSystem(DynamicSystem):
         self.D[3] = 0
         self.D[4] = 0
 
-    def root_loci(self, var, start, stop, num=None):
+    def root_loci(self, var, start, stop, num=50, sort=False):
         """Returns the eigenvalues and eigenvectors as a function of a single
         parameter.
 
@@ -376,7 +377,9 @@ class LinearDynamicSystem(DynamicSystem):
         stop : float
             The ending value.
         num : integer, optional
-            The number of steps.
+            The number of steps, default is 50.
+        sort : boolean, optional
+            Default is false, if true the eigenvalues are sorted.
 
         Returns
         -------
@@ -386,8 +389,6 @@ class LinearDynamicSystem(DynamicSystem):
             The values at which the model was linea
 
         """
-        if num is None:
-            num = 50
         eValues = np.zeros((num, len(self.stateNames)), dtype=complex)
         eVectors = np.zeros((num, len(self.stateNames), len(self.stateNames)),
                 dtype=complex)
@@ -414,6 +415,9 @@ class LinearDynamicSystem(DynamicSystem):
             self.linear(self.equilibriumPoint)
         else:
             raise ValueError('{} is not a valid parameter.'.format(var))
+
+        if sort is True:
+            eValues, eVectors = self.sort_modes(eValues, eVectors)
 
         return eValues, eVectors, values
 
@@ -547,7 +551,14 @@ class LinearDynamicSystem(DynamicSystem):
         return w[indices], v[:, indices]
 
     def min_eig(self):
-        """Returns the non-zero eigenvalues and eigenvectors."""
+        """Returns the non-zero eigenvalues and eigenvectors.
+
+        Notes
+        -----
+        This potentially can have issues if you have an eigenvalue that is but
+        not necessarily ignorable.
+
+        """
         w, v = self.eig()
         indices = []
         for i, eVal in enumerate(w):
@@ -555,7 +566,7 @@ class LinearDynamicSystem(DynamicSystem):
                 indices.append(i)
         return w[indices], v[:, indices]
 
-    def plot_root_loci(self, parameter, start, stop, num=None, axes='complex',
+    def plot_root_loci(self, parameter, start, stop, num=50, axes='complex',
             parts='both'):
         """Returns a plot of the roots with respect to change in a single
         parameter.
@@ -585,25 +596,40 @@ class LinearDynamicSystem(DynamicSystem):
 
         """
 
+        if axes == 'complex':
+            sort=False
+        elif axes == 'parmater':
+            sort=True
+
         # plot a graph with all the outputs
-        eValues, eVectors, parValues = self.root_loci(parameter, start, stop, num=num)
+        eValues, eVectors, parValues = self.root_loci(parameter, start, stop,
+                num=num, sort=sort)
         rootLociFig = plt.figure()
         if axes == 'complex':
             x = eValues.real
             y = eValues.imag
-            plt.scatter(x, y, s=2, c=parValues, cmap=plt.cm.gist_rainbow, edgecolors='none')
-            #colorbar()
+            for i in range(x.shape[1]):
+                plt.scatter(x[:, i], y[:, i], s=20, c=parValues,
+                        cmap=plt.cm.gist_rainbow, edgecolors='none')
+            plt.colorbar()
             plt.grid()
             plt.axis('equal')
+            plt.xlabel('Real')
+            plt.ylabel('Imaginary')
         elif axes == 'parameter':
-            if parts == 'both' or parts == 'imaginary':
-                plt.plot(parValues, eValues.imag, 'r.')
-            if parts == 'both' or parts == 'real':
-                plt.plot(parValues, eValues.real, 'k.')
+            colors = itertools.cycle(plt.rcParams['axes.color_cycle'])
+            for i, eigenvalue in enumerate(eValues.T):
+                color = next(colors)
+                if parts == 'both' or parts == 'imaginary':
+                    plt.plot(parValues, eigenvalue.imag, '--', color=color)
+                if parts == 'both' or parts == 'real':
+                    plt.plot(parValues, eigenvalue.real, '-', color=color)
             if start > stop:
                 ax = rootLociFig.axes[0]
                 ax.invert_xaxis()
+            plt.xlabel('{}'.format(parameter))
+            plt.ylabel('Eigenvalue Component')
 
-        plt.title('Root loci with to {}'.format(parameter))
+        plt.title('Root loci with respect to {}'.format(parameter))
 
         return rootLociFig
