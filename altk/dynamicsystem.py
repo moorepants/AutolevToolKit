@@ -567,7 +567,8 @@ class LinearDynamicSystem(DynamicSystem):
         return w[indices], v[:, indices]
 
     def plot_root_loci(self, parameter, start, stop, num=50, axes='complex',
-            parts='both'):
+            parts='both', units='', factor=None, pub=False, width=4.,
+            xlim=None, ylim=None):
         """Returns a plot of the roots with respect to change in a single
         parameter.
 
@@ -589,6 +590,12 @@ class LinearDynamicSystem(DynamicSystem):
         parts : string, optional
             Can be set to 'both', 'real', or 'imaginary'. This only applies to
             axes='parameter' plots.
+        pub : boolean, optional
+            If true the plots will formed better for publication printing.
+        factor : tuple, optional
+            The parameter or equilibrium point provided to plot may not be what
+            you want reflect. If you'd like to plot something proportional to
+            the parameter, then provide a new parameter name
 
         Returns
         -------
@@ -596,21 +603,46 @@ class LinearDynamicSystem(DynamicSystem):
 
         """
 
+        # there is no need to sort for the complex graph
         if axes == 'complex':
             sort=False
-        elif axes == 'parmater':
+        elif axes == 'parameter':
             sort=True
 
-        # plot a graph with all the outputs
         eValues, eVectors, parValues = self.root_loci(parameter, start, stop,
                 num=num, sort=sort)
+
+        if factor is not None:
+            parValues = factor[1] * parValues
+            parameter = factor[0]
+
+        # plot a graph with all the outputs
+        if pub is True:
+            goldenRatio = (np.sqrt(5) - 1.0) / 2.0
+            fig_size =  [width, goldenRatio * width]
+            params = {'backend': 'ps',
+                      'axes.labelsize': 10,
+                      'axes.titlesize': 10,
+                      'text.fontsize': 10,
+                      'legend.fontsize': 10,
+                      'xtick.labelsize': 8,
+                      'ytick.labelsize': 8,
+                      'text.usetex': True,
+                      'figure.figsize': fig_size}
+            plt.rcParams.update(params)
+
         rootLociFig = plt.figure()
+        if pub is True:
+            plt.axes([0.125, 0.2, 0.95 - 0.125, 0.7])
+
         if axes == 'complex':
             x = eValues.real
             y = eValues.imag
             for i in range(x.shape[1]):
-                plt.scatter(x[:, i], y[:, i], s=20, c=parValues,
-                        cmap=plt.cm.gist_rainbow, edgecolors='none')
+                # don't plot the zero eigenvalues
+                if (abs(x[:, i] - np.zeros_like(x[:, i])) > 1e-8).any():
+                    plt.scatter(x[:, i], y[:, i], s=20, c=parValues,
+                            cmap=plt.cm.gist_rainbow, edgecolors='none')
             plt.colorbar()
             plt.grid()
             plt.axis('equal')
@@ -619,16 +651,21 @@ class LinearDynamicSystem(DynamicSystem):
         elif axes == 'parameter':
             colors = itertools.cycle(plt.rcParams['axes.color_cycle'])
             for i, eigenvalue in enumerate(eValues.T):
-                color = next(colors)
-                if parts == 'both' or parts == 'imaginary':
-                    plt.plot(parValues, eigenvalue.imag, '--', color=color)
-                if parts == 'both' or parts == 'real':
-                    plt.plot(parValues, eigenvalue.real, '-', color=color)
-            if start > stop:
-                ax = rootLociFig.axes[0]
-                ax.invert_xaxis()
-            plt.xlabel('{}'.format(parameter))
-            plt.ylabel('Eigenvalue Component')
+                # don't plot the zero eigenvalues
+                if (abs(eigenvalue.real - np.zeros_like(eigenvalue.real)) > 1e-8).any():
+                    color = next(colors)
+                    if parts == 'both' or parts == 'imaginary':
+                        plt.plot(parValues, eigenvalue.imag, '--', color=color)
+                    if parts == 'both' or parts == 'real':
+                        plt.plot(parValues, eigenvalue.real, '-', color=color)
+            plt.grid()
+            plt.xlabel('{} [{}]'.format(parameter, units))
+            plt.ylabel('Eigenvalue Component [$s^{-1}$]')
+
+        if xlim is not None:
+            plt.xlim(xlim)
+        if ylim is not None:
+            plt.ylim(ylim)
 
         plt.title('Root loci with respect to {}'.format(parameter))
 
