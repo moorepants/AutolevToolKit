@@ -6,6 +6,14 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 
+# debugging
+try:
+    from IPython.core.debugger import Tracer
+except ImportError:
+    pass
+else:
+    set_trace = Tracer()
+
 class DynamicSystem(object):
     """
     Dynamic System class.
@@ -364,7 +372,7 @@ class LinearDynamicSystem(DynamicSystem):
         self.D[3] = 0
         self.D[4] = 0
 
-    def root_loci(self, var, start, stop, num=50, sort=False):
+    def root_locus(self, var, start, stop, num=50, sort=False):
         """Returns the eigenvalues and eigenvectors as a function of a single
         parameter.
 
@@ -510,22 +518,52 @@ class LinearDynamicSystem(DynamicSystem):
             eigenvectors
 
         """
-        evalsorg = np.zeros_like(evals)
-        evecsorg = np.zeros_like(evecs)
+        # first take a random sampling of the eigenvalues to determine how many
+        # non-zero eigenvalues are in the system
+        if len(evals) < 20:
+            size = len(evals)
+        else:
+            size = 20
+        randEvals = np.abs(evals[np.random.randint(0, len(evals), size=size)])
+        # now count how many non-zero entries are in this sample
+        eigCounts = np.array([np.count_nonzero((e - 0.0) > 1e-15) for e in randEvals])
+        numNonzero = int(np.round(eigCounts.mean()))
+        # now let's go through and build a reduced set of eigenvalues and
+        # eigenvectors
+        reducedEvals = np.zeros((evals.shape[0], numNonzero),
+                dtype=evals.dtype)
+        reducedEvecs = np.zeros((evecs.shape[0], evecs.shape[1], numNonzero),
+                dtype=evecs.dtype)
+        for i, eigSet in enumerate(evals):
+            # the length of the indices should be equal to the number of
+            # non-zero entries, but it is possible for it to be less due to the
+            # fact that the eigenvalue loci can pass through the origin
+            nonZeroInd = np.abs(eigSet) > 1e-14
+
+            reducedEigSet = eigSet[nonZeroInd]
+            reducedEvals[i, :len(reducedEigSet)] = reducedEigSet
+
+            reducedEvecSet = evecs[i][:, nonZeroInd]
+            reducedEvecs[i, :, :reducedEvecSet.shape[1]] = reducedEvecSet
+
+        # now it is only needed to sort the eigenvalues of the reduced set
+
+        evalsorg = np.zeros_like(reducedEvals)
+        evecsorg = np.zeros_like(reducedEvecs)
         # set the first row to be the same
-        evalsorg[0] = evals[0]
-        evecsorg[0] = evecs[0]
-        # for each speed
-        for i, speed in enumerate(evals):
-            if i == evals.shape[0] - 1:
+        evalsorg[0] = reducedEvals[0]
+        evecsorg[0] = reducedEvecs[0]
+        # for each set of eigenvalues
+        for i, evalSet in enumerate(reducedEvals):
+            if i == reducedEvals.shape[0] - 1:
                 break
             # for each current eigenvalue
             used = []
-            for j, e in enumerate(speed):
+            for j, e in enumerate(evalSet):
                 x, y = np.real(evalsorg[i, j]), np.imag(evalsorg[i, j])
                 # for each eigenvalue at the next speed
-                dist = np.zeros(evals.shape[1])
-                for k, eignext in enumerate(evals[i + 1]):
+                dist = np.zeros(reducedEvals.shape[1])
+                for k, eignext in enumerate(reducedEvals[i + 1]):
                     xn, yn = np.real(eignext), np.imag(eignext)
                     # distance between points in the real/imag plane
                     dist[k] = np.abs(((xn - x)**2 + (yn - y)**2)**0.5)
@@ -534,8 +572,8 @@ class LinearDynamicSystem(DynamicSystem):
                     dist[np.argmin(dist)] = np.max(dist) + 1.
                 else:
                     pass
-                evalsorg[i + 1, j] = evals[i + 1, np.argmin(dist)]
-                evecsorg[i + 1, :, j] = evecs[i + 1, :, np.argmin(dist)]
+                evalsorg[i + 1, j] = reducedEvals[i + 1, np.argmin(dist)]
+                evecsorg[i + 1, :, j] = reducedEvecs[i + 1, :, np.argmin(dist)]
                 # keep track of the indices we've used
                 used.append(np.argmin(dist))
         return evalsorg, evecsorg
@@ -566,7 +604,7 @@ class LinearDynamicSystem(DynamicSystem):
                 indices.append(i)
         return w[indices], v[:, indices]
 
-    def plot_root_loci(self, parameter, start, stop, num=50, axes='complex',
+    def plot_root_locus(self, parameter, start, stop, num=50, axes='complex',
             parts='both', units='', factor=None, pub=False, width=4.,
             xlim=None, ylim=None):
         """Returns a plot of the roots with respect to change in a single
@@ -609,7 +647,7 @@ class LinearDynamicSystem(DynamicSystem):
         elif axes == 'parameter':
             sort=True
 
-        eValues, eVectors, parValues = self.root_loci(parameter, start, stop,
+        eValues, eVectors, parValues = self.root_locus(parameter, start, stop,
                 num=num, sort=sort)
 
         if factor is not None:
@@ -640,10 +678,11 @@ class LinearDynamicSystem(DynamicSystem):
             y = eValues.imag
             for i in range(x.shape[1]):
                 # don't plot the zero eigenvalues
-                if (abs(x[:, i] - np.zeros_like(x[:, i])) > 1e-8).any():
+                if (abs(x[:, i] - np.zeros_like(x[:, i])) > 1e-14).any():
                     plt.scatter(x[:, i], y[:, i], s=20, c=parValues,
                             cmap=plt.cm.gist_rainbow, edgecolors='none')
-            plt.colorbar()
+            cb = plt.colorbar()
+            cb.set_label('{} [{}]'.format(parameter, units))
             plt.grid()
             plt.axis('equal')
             plt.xlabel('Real')
@@ -652,10 +691,13 @@ class LinearDynamicSystem(DynamicSystem):
             colors = itertools.cycle(plt.rcParams['axes.color_cycle'])
             for i, eigenvalue in enumerate(eValues.T):
                 # don't plot the zero eigenvalues
-                if (abs(eigenvalue.real - np.zeros_like(eigenvalue.real)) > 1e-8).any():
+                if (abs(eigenvalue.real - np.zeros_like(eigenvalue.real)) >
+                        1e-14).any():
                     color = next(colors)
                     if parts == 'both' or parts == 'imaginary':
-                        plt.plot(parValues, eigenvalue.imag, '--', color=color)
+                        if (abs(eigenvalue.imag -
+                            np.zeros_like(eigenvalue.imag)) > 1e-14).any():
+                           plt.plot(parValues, eigenvalue.imag, '--', color=color)
                     if parts == 'both' or parts == 'real':
                         plt.plot(parValues, eigenvalue.real, '-', color=color)
             plt.grid()
@@ -667,6 +709,41 @@ class LinearDynamicSystem(DynamicSystem):
         if ylim is not None:
             plt.ylim(ylim)
 
-        plt.title('Root loci with respect to {}'.format(parameter))
+        plt.title('Root locus with respect to {}'.format(parameter))
 
         return rootLociFig
+
+    def reduce_system(self, states, inputs, outputs):
+        """Returns reduced state space matrices.
+
+        Parameters
+        ----------
+        states : list
+            A list of the state names of the reduced system.
+        inputs : list
+            A list of the input names of the reduced system.
+        outputs : list
+            A list of the output names of the reduced system.
+
+        Returns
+        -------
+        A : ndarray
+            State matrix.
+        B : ndarray
+            Input matrix.
+        C : ndarray
+            Output matrix.
+        D : ndarray
+            Feed forward matrix.
+
+        """
+        stateIndices = sorted([self.stateNames.index(s) for s in states])
+        inputIndices = sorted([self.inputNames.index(s) for s in inputs])
+        outputIndices = sorted([self.outputNames.index(s) for s in outputs])
+
+        A = self.A[np.ix_(stateIndices, stateIndices)]
+        B = self.B[np.ix_(stateIndices, inputIndices)]
+        C = self.C[np.ix_(outputIndices, stateIndices)]
+        D = self.D[np.ix_(outputIndices, inputIndices)]
+
+        return A, B, C, D
