@@ -447,7 +447,7 @@ class LinearDynamicSystem(DynamicSystem):
         else:
             return eig(self.A)
 
-    def plot_eigenvectors(self, states=None, show=False, pub=False):
+    def plot_eigenvectors(self, states=None, show=False):
         """Plots the components of the eigenvectors in the real and imaginary
         plane.
 
@@ -466,24 +466,12 @@ class LinearDynamicSystem(DynamicSystem):
 
         Notes
         -----
-        Plots are note produced for zero eigenvalues.
+        Plots are not produced for zero eigenvalues.
 
         """
         if states is None:
             states = self.stateNames
-        if pub is True:
-            #fig_size =  [fig_width,fig_height]
-            fig_size =  [3., 3.]
-            params = {'backend': 'ps',
-                      'axes.labelsize': 10,
-                      'axes.titlesize': 10,
-                      'text.fontsize': 10,
-                      'legend.fontsize': 10,
-                      'xtick.labelsize': 8,
-                      'ytick.labelsize': 8,
-                      'text.usetex': True,
-                      'figure.figsize': fig_size}
-            plt.rcParams.update(params)
+
         w, v = self.remove_eig_pairs()
         figs = []
         lw = range(1, len(states) + 1)
