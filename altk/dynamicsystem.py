@@ -675,6 +675,7 @@ class LinearDynamicSystem(DynamicSystem):
             plt.axis('equal')
             plt.xlabel('Real')
             plt.ylabel('Imaginary')
+            plt.title('Root locus with respect to {}'.format(parameter))
         elif axes == 'parameter':
             colors = itertools.cycle(plt.rcParams['axes.color_cycle'])
             for i, eigenvalue in enumerate(eValues.T):
@@ -691,13 +692,13 @@ class LinearDynamicSystem(DynamicSystem):
             plt.grid()
             plt.xlabel('{} [{}]'.format(parameter, units))
             plt.ylabel('Eigenvalue Component [$s^{-1}$]')
+            plt.title('Eigenvalue parts with respect to {}'.format(parameter))
 
         if xlim is not None:
             plt.xlim(xlim)
         if ylim is not None:
             plt.ylim(ylim)
 
-        plt.title('Root locus with respect to {}'.format(parameter))
 
         return rootLociFig
 
