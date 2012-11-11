@@ -513,8 +513,9 @@ class LinearDynamicSystem(DynamicSystem):
         else:
             size = 20
         randEvals = np.abs(evals[np.random.randint(0, len(evals), size=size)])
-        # now count how many non-zero entries are in this sample
-        eigCounts = np.array([np.count_nonzero((e - 0.0) > 1e-15) for e in randEvals])
+        # now count how many non-zero entries are in this sample, this
+        # threshold isn't alwasy perfect
+        eigCounts = np.array([np.count_nonzero((e - 0.0) > 1e-20) for e in randEvals])
         numNonzero = int(np.round(eigCounts.mean()))
         # now let's go through and build a reduced set of eigenvalues and
         # eigenvectors
